@@ -62,7 +62,7 @@ unsigned long return_word(unsigned long tag, unsigned tag_shift, unsigned long i
 
 int main(void){
 /******************************** Variables declarations *************************************/
-	unsigned i, j, no_blocks, block_offset, tag_shift, tag_size, powerof_word_size;
+	unsigned i, j, no_blocks, block_offset, tag_shift, tag_size;
 	float hitrate;
 	char filename[50];
 	int no_set, asso = 1;
