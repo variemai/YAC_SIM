@@ -72,12 +72,14 @@ int main(void){
 	bitset<32> tag_mask;
 	unsigned long index, tmp, tmp_tag, tag,old_address;
 	string str;
+	bool interactive_mode;
 	ifstream infile;
 	vector<entry> cache;
 	entry init_entry;
 /*********************************** Initialization *****************************************/ 
 	init_entry.valid=0;
 	init_entry.tag=0;
+	interactive_mode = false;
 	cout << "Enter the memory size : ";
 	cin >> memory_size;
 	bitset<32> bitset0{ memory_size };
@@ -102,8 +104,6 @@ int main(void){
 		index_mask[j] = 0;
 	}
 	tag_shift = i;
-	cout << "Enter trace filename : ";
-	cin >> filename;
 	no_blocks = cache_size / block_size ;
 	no_set = no_blocks / asso;
 	for(int i=0; i<no_set; i++){
@@ -113,15 +113,20 @@ int main(void){
 	//cout << "Tag size in bits: " << tag_size << endl;
 	//cout << "Tag Shift: " << tag_shift << endl;
 	//cout << "No of indexes: " << no_blocks << endl;
+	tmp = index_mask.to_ulong();
+	//cout << "INDEX MASK: " << tmp << endl;
+	tmp_tag = tag_mask.to_ulong();
+	//cout << "TAG MASK: " << tmp_tag << endl;
+	cout << "Interactive Mode? Yes [1], No [0]: ";
+	cin >> interactive_mode;
+	if( !interactive) {
+	cout << "Enter trace filename : ";
+	cin >> filename;
 	infile.open(filename, ios::in);
 	if (!infile){
 		cout << "Error! File not found...\n";
 		exit(0);
 	}
-	tmp = index_mask.to_ulong();
-	//cout << "INDEX MASK: " << tmp << endl;
-	tmp_tag = tag_mask.to_ulong();
-	//cout << "TAG MASK: " << tmp_tag << endl;
 
 /****************************************** Simulation ***************************************/ 
 
@@ -157,16 +162,20 @@ int main(void){
 		}
 		printf("  HIT RATE: %.2f%%\n",100.0*(float(hit)/float(check))); 
 	}
+	}
+	else{
+		while (cin >> str){
+		}
+	}
 /******************************************** Results *************************************************************/
-	
-	infile.close();
+	if(!interactive) infile.close();
 	cout << "************* Cache Simulation Results ************"<< endl;
 	printf ("*             Total ACCESSES : %18d *\n",check);
 	printf ("*             Number of HITS : %18d *\n",hit);
 	printf ("*             Number of MISSES : %16d *\n",miss);
 	hitrate =100* (float(hit) / float(check));
 	printf ("*             HIT RATE : %23.2f%% *\n",hitrate);
-	cout << "***************************************************"<<endl;
+	cout << "***************************************************"<< endl;
 	return 0;
 }
 
