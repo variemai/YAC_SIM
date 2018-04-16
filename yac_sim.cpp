@@ -40,10 +40,21 @@ unsigned pow2(unsigned num){
 	return i;
 }
 
-void display_contents(vector<entry> &cache, int no_set, unsigned tag_size){
-	for(int i=0; i<no_set; i++) {
+void print_bin_index(unsigned long index, unsigned size){
+	bitset<32> bits = {index};
+	for(unsigned i=size-1; i>=0; i--){
+		cout << bits[i];
+		if(i==0) break;
+	}
+}
+
+void display_contents(vector<entry> &cache, unsigned no_set, unsigned tag_size, unsigned index_size){
+	for(unsigned i=0; i<no_set; i++) {
 		bitset<32> bits = {cache[i].tag};	
-		printf("Index: %d, Valid: %u, Tag: ",i,cache[i].valid);
+		//printf("Index: %d, Valid: %u, Tag: ",i,cache[i].valid);
+		cout << "Index: ";
+		print_bin_index(i,index_size);
+		cout << " Valid: " << cache[i].valid << ", Tag: ";
 		for(unsigned j=tag_size-1; j>=0; j--){
 			cout << bits[j] ;
 			if (j==0) break;
@@ -62,10 +73,10 @@ unsigned long return_word(unsigned long tag, unsigned tag_shift, unsigned long i
 
 int main(void){
 /******************************** Variables declarations *************************************/
-	unsigned i, j, no_blocks, block_offset, tag_shift, tag_size;
-	float hitrate;
+	unsigned i, j, no_blocks, block_offset, tag_shift, tag_size, index_size;
+	float hitrate = 0.0;
 	char filename[50];
-	int no_set, asso = 1;
+	unsigned no_set, asso = 1;
 	int check = 0, hit = 0, miss = 0;
 	unsigned long cache_size, block_size,address,memory_size;
 	bitset<32> index_mask{ ULONG_MAX };
@@ -80,24 +91,27 @@ int main(void){
 	init_entry.valid=0;
 	init_entry.tag=0;
 	interactive_mode = false;
-	cout << "Enter the memory size : ";
+	cout << "Enter the memory size: ";
 	cin >> memory_size;
 	bitset<32> bitset0{ memory_size };
 	tag_size = powerof2(bitset0);
-	cout << "Enter the cache size : ";
+	cout << "Enter the cache size: ";
 	cin >> cache_size;
 	bitset<32> bitset1{ cache_size };
-	cout << "Enter the size of the Word : ";
+	cout << "Enter the size of the Word: ";
 	cin >> word_size;
 	//cout << "size of Word: "<<word_size << "power: " << pow2(word_size) << endl;
 	i = powerof2(bitset1);
+	index_size = i;
 	index_mask = index_mask << i;
 	index_mask = ~index_mask;
 	tag_mask = ~index_mask;
-	cout << "Enter the block size(in Bytes) : ";
+	cout << "Enter the block size: ";
 	cin >> block_size;
 	bitset<32> bitset2{ block_size };
 	block_offset = powerof2(bitset2);
+	index_size = index_size - block_offset;
+	cout << "Index Size: " << index_size << endl;
 	cout << "Block Offset: " << block_offset << endl;
 	for (j = 0; j < block_offset; j++)
 	{
@@ -106,7 +120,7 @@ int main(void){
 	tag_shift = i;
 	no_blocks = cache_size / block_size ;
 	no_set = no_blocks / asso;
-	for(int i=0; i<no_set; i++){
+	for(unsigned i=0; i<no_set; i++){
 		cache.push_back(init_entry);
 	}
 	tag_size = tag_size - i;
@@ -119,7 +133,7 @@ int main(void){
 	//cout << "TAG MASK: " << tmp_tag << endl;
 	cout << "Interactive Mode? Yes [1], No [0]: ";
 	cin >> interactive_mode;
-	if( !interactive) {
+	if( !interactive_mode) {
 	cout << "Enter trace filename : ";
 	cin >> filename;
 	infile.open(filename, ios::in);
@@ -133,7 +147,7 @@ int main(void){
 	while (getline(infile, str))
 	{	
 		if(str.compare("display") == 0){
-			display_contents(cache,no_set,tag_size);
+			display_contents(cache,no_set,tag_size,index_size);
 			continue;
 		}		
 		address = stoi(str);
@@ -145,17 +159,21 @@ int main(void){
 		check++;
 		if (cache[index].valid == 1 && cache[index].tag == tag) {
 			hit++;
-			cout << "HIT, with index: " << index;
+			cout << "HIT with index: ";
+			print_bin_index(index,index_size);
+			//cout << "HIT, with index: " << index;
 		}
 		else {
 			miss++;
 			if(cache[index].valid==1){
 				old_address = return_word(cache[index].tag,tag_shift,index,block_offset); 
 				cout <<"miss, replace address: "<< old_address;
-				cout << "  with index: " << index;
+				cout << "  with index: ";
+				print_bin_index(index,index_size);
 			}
 			else{
-				cout << "MISS, with index: " << index;
+				cout << "MISS, with index: ";
+				print_bin_index(index,index_size);
 				cache[index].valid = 1;
 			}
 			cache[index].tag = tag;
@@ -165,10 +183,48 @@ int main(void){
 	}
 	else{
 		while (cin >> str){
+		if(str.compare("exit") == 0 ) break;
+				
+		if(str.compare("display") == 0){
+			display_contents(cache,no_set,tag_size,index_size);
+			continue;
+		}		
+		address = stoi(str);
+		cout << "ADDR : " << address << " ";
+		index = address & tmp;
+		index = index >> block_offset;
+		tag = address & tmp_tag;
+		tag = tag >> tag_shift;
+		check++;
+		if (cache[index].valid == 1 && cache[index].tag == tag) {
+			hit++;
+			//cout << "HIT, with index: " << index;
+			cout << "HIT, with index: ";
+			print_bin_index(index,index_size);
+		}
+		else {
+			miss++;
+			if(cache[index].valid==1){
+				old_address = return_word(cache[index].tag,tag_shift,index,block_offset); 
+				cout <<"miss, replace address: "<< old_address;
+				//cout << "  with index: " << index;
+				cout << "  with index: ";
+				print_bin_index(index,index_size);
+			}
+			else{
+				//cout << "MISS, with index: " << index;
+				cout << "MISS, with index: ";
+				print_bin_index(index,index_size);
+				cache[index].valid = 1;
+			}
+			cache[index].tag = tag;
+		}
+		printf("  HIT RATE: %.2f%%\n",100.0*(float(hit)/float(check))); 
+
 		}
 	}
 /******************************************** Results *************************************************************/
-	if(!interactive) infile.close();
+	if(!interactive_mode) infile.close();
 	cout << "************* Cache Simulation Results ************"<< endl;
 	printf ("*             Total ACCESSES : %18d *\n",check);
 	printf ("*             Number of HITS : %18d *\n",hit);
