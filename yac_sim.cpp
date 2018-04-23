@@ -83,14 +83,14 @@ int main(void){
 	bitset<32> tag_mask;
 	unsigned long index, tmp, tmp_tag, tag,old_address;
 	string str;
-	bool interactive_mode;
+	unsigned interactive_mode, con_sim;
 	ifstream infile;
 	vector<entry> cache;
 	entry init_entry;
 /*********************************** Initialization *****************************************/ 
 	init_entry.valid=0;
 	init_entry.tag=0;
-	interactive_mode = false;
+	interactive_mode = 0;
 	cout << "Enter the memory size: ";
 	cin >> memory_size;
 	bitset<32> bitset0{ memory_size };
@@ -111,8 +111,8 @@ int main(void){
 	bitset<32> bitset2{ block_size };
 	block_offset = powerof2(bitset2);
 	index_size = index_size - block_offset;
-	cout << "Index Size: " << index_size << endl;
-	cout << "Block Offset: " << block_offset << endl;
+	//cout << "Index Size: " << index_size << endl;
+	//cout << "Block Offset: " << block_offset << endl;
 	for (j = 0; j < block_offset; j++)
 	{
 		index_mask[j] = 0;
@@ -131,8 +131,14 @@ int main(void){
 	//cout << "INDEX MASK: " << tmp << endl;
 	tmp_tag = tag_mask.to_ulong();
 	//cout << "TAG MASK: " << tmp_tag << endl;
+start_sim:
 	cout << "Interactive Mode? Yes [1], No [0]: ";
 	cin >> interactive_mode;
+	if( interactive_mode != 0 && interactive_mode != 1){
+		cout << "Invalid Value, exiting..." <<endl;
+		exit(0);
+	}
+normal_mode:
 	if( !interactive_mode) {
 	cout << "Enter trace filename : ";
 	cin >> filename;
@@ -183,7 +189,12 @@ int main(void){
 	}
 	else{
 		while (cin >> str){
-		if(str.compare("exit") == 0 ) break;
+		if(str.compare("exit") == 0 ) goto results;
+
+		if(str.compare("source") == 0 ){
+			interactive_mode = 0;
+			goto normal_mode;
+		}
 				
 		if(str.compare("display") == 0){
 			display_contents(cache,no_set,tag_size,index_size);
@@ -223,8 +234,18 @@ int main(void){
 
 		}
 	}
-/******************************************** Results *************************************************************/
 	if(!interactive_mode) infile.close();
+	cout << "Continue Simulation? Yes [1], No [0]: ";
+	cin >> con_sim;
+	if(con_sim !=0 && con_sim !=1){
+		cout << "Invalid Value, exiting..." << endl; 
+		exit(0);
+	}
+	if(con_sim)
+	goto start_sim;
+results:
+
+/******************************************** Results *************************************************************/
 	cout << "************* Cache Simulation Results ************"<< endl;
 	printf ("*             Total ACCESSES : %18d *\n",check);
 	printf ("*             Number of HITS : %18d *\n",hit);
