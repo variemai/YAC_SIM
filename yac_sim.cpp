@@ -75,7 +75,7 @@ int main(void){
 /******************************** Variables declarations *************************************/
 	unsigned i, j, no_blocks, block_offset, tag_shift, tag_size, index_size;
 	float hitrate = 0.0;
-	char filename[50];
+	char filename[256];
 	unsigned no_set, asso = 1;
 	int check = 0, hit = 0, miss = 0;
 	unsigned long cache_size, block_size,address,memory_size;
