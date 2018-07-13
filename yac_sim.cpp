@@ -142,6 +142,7 @@ normal_mode:
 	if( !interactive_mode) {
 	cout << "Enter trace filename : ";
 	cin >> filename;
+	cout << "Filename given: " << filename << endl;
 	infile.open(filename, ios::in);
 	if (!infile){
 		cout << "Error! File not found...\n";
