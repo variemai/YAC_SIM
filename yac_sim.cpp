@@ -66,6 +66,9 @@ print_bin_index(unsigned long index, unsigned size){
 	}
 }
 
+void set_cache_characteristics(){
+}
+
 void
 display_contents(vector<entry> &cache, unsigned no_set, unsigned tag_size,
 	unsigned index_size){
