@@ -1,18 +1,18 @@
-/***************************************************** 
+/*****************************************************
  * University of Crete, Computer Science Department  *
  * cache simulator for the purposes of CS-225 ex 11  *
  * Author: Vardas Ioannis 04/02/2018                 *
  *****************************************************/
 
-#include <iostream> 
-#include <fstream> 
-#include <cstdlib> 
-#include <limits.h> 
-#include <vector> 
-#include <stdint.h> 
-#include <bitset> 
+#include <iostream>
+#include <fstream>
+#include <cstdlib>
+#include <limits.h>
+#include <vector>
+#include <stdint.h>
+#include <bitset>
 #define WORD 4
-using namespace std; 
+using namespace std;
 
 unsigned word_size;
 
@@ -50,7 +50,7 @@ void print_bin_index(unsigned long index, unsigned size){
 
 void display_contents(vector<entry> &cache, unsigned no_set, unsigned tag_size, unsigned index_size){
 	for(unsigned i=0; i<no_set; i++) {
-		bitset<32> bits = {cache[i].tag};	
+		bitset<32> bits = {cache[i].tag};
 		//printf("Index: %d, Valid: %u, Tag: ",i,cache[i].valid);
 		cout << "Index: ";
 		print_bin_index(i,index_size);
@@ -87,7 +87,7 @@ int main(void){
 	ifstream infile;
 	vector<entry> cache;
 	entry init_entry;
-/*********************************** Initialization *****************************************/ 
+/*********************************** Initialization *****************************************/
 	init_entry.valid=0;
 	init_entry.tag=0;
 	interactive_mode = 0;
@@ -132,12 +132,92 @@ int main(void){
 	tmp_tag = tag_mask.to_ulong();
 	//cout << "TAG MASK: " << tmp_tag << endl;
 start_sim:
-	cout << "Interactive Mode? Yes [1], No [0]: ";
+cout << "Insert an address or one of the commands\n";
+while (cin >> str){
+
+	if(str.compare("exit") == 0 ) {
+		/*TODO replace this shit with a function call and a break*/
+		goto results;
+	}
+
+	if(str.compare("source") == 0 ){
+		cout << "Enter trace filename : ";
+		cin >> filename;
+		cout << "Filename given: " << filename << endl;
+		infile.open(filename, ios::in);
+		if (!infile){
+			cout << "Error! File not found...\n";
+			exit(0);
+		}
+		while (getline(infile, str)){
+			address = stoi(str);
+			cout << "ADDR : " << address << " ";
+			index = address & tmp;
+			index = index >> block_offset;
+			tag = address & tmp_tag;
+			tag = tag >> tag_shift;
+			check++;
+			if (cache[index].valid == 1 && cache[index].tag == tag) {
+				hit++;
+				cout << "HIT with index: ";
+				print_bin_index(index,index_size);
+			}
+			else {
+				miss++;
+				if(cache[index].valid==1){
+					old_address = return_word(cache[index].tag,tag_shift,index,block_offset);
+					cout <<"miss, replace address: "<< old_address;
+					cout << "  with index: ";
+					print_bin_index(index,index_size);
+				}
+				else{
+					cout << "MISS, with index: ";
+					print_bin_index(index,index_size);
+					cache[index].valid = 1;
+				}
+				cache[index].tag = tag;
+			}
+		continue;
+		//interactive_mode = 0;
+		//goto normal_mode;
+	}
+	address = stoi(str);
+	cout << "ADDR : " << address << " ";
+	index = address & tmp;
+	index = index >> block_offset;
+	tag = address & tmp_tag;
+	tag = tag >> tag_shift;
+	check++;
+	if (cache[index].valid == 1 && cache[index].tag == tag) {
+		hit++;
+		//cout << "HIT, with index: " << index;
+		cout << "HIT, with index: ";
+		print_bin_index(index,index_size);
+	}
+	else {
+		miss++;
+		if(cache[index].valid==1){
+			old_address = return_word(cache[index].tag,tag_shift,index,block_offset);
+			cout <<"miss, replace address: "<< old_address;
+			//cout << "  with index: " << index;
+			cout << "  with index: ";
+			print_bin_index(index,index_size);
+		}
+		else{
+			//cout << "MISS, with index: " << index;
+			cout << "MISS, with index: ";
+			print_bin_index(index,index_size);
+			cache[index].valid = 1;
+		}
+		cache[index].tag = tag;
+	}
+	/*cout << "Interactive Mode? Yes [1], No [0]: ";
 	cin >> interactive_mode;
 	if( interactive_mode != 0 && interactive_mode != 1){
 		cout << "Invalid Value, exiting..." <<endl;
 		exit(0);
-	}
+	}*/
+}
 normal_mode:
 	if( !interactive_mode) {
 	cout << "Enter trace filename : ";
@@ -149,14 +229,14 @@ normal_mode:
 		exit(0);
 	}
 
-/****************************************** Simulation ***************************************/ 
+/****************************************** Simulation ***************************************/
 
 	while (getline(infile, str))
-	{	
+	{
 		if(str.compare("display") == 0){
 			display_contents(cache,no_set,tag_size,index_size);
 			continue;
-		}		
+		}
 		address = stoi(str);
 		cout << "ADDR : " << address << " ";
 		index = address & tmp;
@@ -173,7 +253,7 @@ normal_mode:
 		else {
 			miss++;
 			if(cache[index].valid==1){
-				old_address = return_word(cache[index].tag,tag_shift,index,block_offset); 
+				old_address = return_word(cache[index].tag,tag_shift,index,block_offset);
 				cout <<"miss, replace address: "<< old_address;
 				cout << "  with index: ";
 				print_bin_index(index,index_size);
@@ -185,7 +265,7 @@ normal_mode:
 			}
 			cache[index].tag = tag;
 		}
-		printf("  HIT RATE: %.2f%%\n",100.0*(float(hit)/float(check))); 
+		printf("  HIT RATE: %.2f%%\n",100.0*(float(hit)/float(check)));
 	}
 	}
 	else{
@@ -196,11 +276,11 @@ normal_mode:
 			interactive_mode = 0;
 			goto normal_mode;
 		}
-				
+
 		if(str.compare("display") == 0){
 			display_contents(cache,no_set,tag_size,index_size);
 			continue;
-		}		
+		}
 		address = stoi(str);
 		cout << "ADDR : " << address << " ";
 		index = address & tmp;
@@ -217,7 +297,7 @@ normal_mode:
 		else {
 			miss++;
 			if(cache[index].valid==1){
-				old_address = return_word(cache[index].tag,tag_shift,index,block_offset); 
+				old_address = return_word(cache[index].tag,tag_shift,index,block_offset);
 				cout <<"miss, replace address: "<< old_address;
 				//cout << "  with index: " << index;
 				cout << "  with index: ";
@@ -231,7 +311,7 @@ normal_mode:
 			}
 			cache[index].tag = tag;
 		}
-		printf("  HIT RATE: %.2f%%\n",100.0*(float(hit)/float(check))); 
+		printf("  HIT RATE: %.2f%%\n",100.0*(float(hit)/float(check)));
 
 		}
 	}
@@ -239,7 +319,7 @@ normal_mode:
 	cout << "Continue Simulation? Yes [1], No [0]: ";
 	cin >> con_sim;
 	if(con_sim !=0 && con_sim !=1){
-		cout << "Invalid Value, exiting..." << endl; 
+		cout << "Invalid Value, exiting..." << endl;
 		exit(0);
 	}
 	if(con_sim)
@@ -256,4 +336,3 @@ results:
 	cout << "***************************************************"<< endl;
 	return 0;
 }
-
