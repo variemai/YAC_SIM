@@ -17,6 +17,11 @@ using namespace std;
 unsigned word_size;
 
 int check = 0, hit = 0, miss = 0;
+typedef struct profile_info{
+	int check;
+	int hit;
+	int miss;
+}cache_prof;
 
 /*Create entry struct for cache*/
 typedef struct cache_entry{
@@ -24,6 +29,15 @@ typedef struct cache_entry{
 	unsigned long tag;
 }entry;
 
+typedef struct cache_characteristics{
+	unsigned long cache_size;
+    unsigned long block_size;
+    unsigned long memory_size;
+    unsigned long tmp_tag; 
+    unsigned long tmp;
+}cache_char;
+
+/*************************Functions Definitions and Declarations***************/
 unsigned
 powerof2(bitset<32> bitset1) {
 	unsigned i;
@@ -58,7 +72,6 @@ display_contents(vector<entry> &cache, unsigned no_set, unsigned tag_size,
 	unsigned index_size){
 	for(unsigned i=0; i<no_set; i++) {
 		bitset<32> bits = {cache[i].tag};
-		//printf("Index: %d, Valid: %u, Tag: ",i,cache[i].valid);
 		cout << "Index: ";
 		print_bin_index(i,index_size);
 		cout << " Valid: " << cache[i].valid << ", Tag: ";
@@ -132,7 +145,7 @@ main(void){
 	unsigned i, j, no_blocks, block_offset, tag_shift, tag_size, index_size;
 	string filename;
 	unsigned no_set, asso = 1;
-	unsigned long cache_size, block_size,address,memory_size, tmp_tag, tmp;
+	unsigned long cache_size, block_size, memory_size, tmp_tag, tmp;
 	bitset<32> index_mask{ ULONG_MAX };
 	bitset<32> tag_mask;
 	string str;
