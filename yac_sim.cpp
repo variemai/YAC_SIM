@@ -16,7 +16,6 @@ using namespace std;
 
 unsigned word_size;
 
-int check = 0, hit = 0, miss = 0;
 typedef struct profile_info{
 	int check;
 	int hit;
@@ -94,14 +93,14 @@ return_word(unsigned long tag, unsigned tag_shift, unsigned long index,
 }
 
 void
-print_results(int check, int hit, int miss){
-	if(check == 0 ) return ;
+print_results(cache_prof *prof_info){
+	if(prof_info->check == 0 ) return ;
 	float hitrate = 0.0;
 	cout << "************* Cache Simulation Results ************"<< endl;
-	printf ("*             Total ACCESSES : %18d *\n",check);
-	printf ("*             Number of HITS : %18d *\n",hit);
-	printf ("*             Number of MISSES : %16d *\n",miss);
-	hitrate =100* (float(hit) / float(check));
+	printf ("*             Total ACCESSES : %18d *\n",prof_info->check);
+	printf ("*             Number of HITS : %18d *\n",prof_info->hit);
+	printf ("*             Number of MISSES : %16d *\n",prof_info->miss);
+	hitrate =100* (float(prof_info->hit) / float(prof_info->check));
 	printf ("*             HIT RATE : %23.2f%% *\n",hitrate);
 	cout << "***************************************************"<< endl;
 }
@@ -109,21 +108,21 @@ print_results(int check, int hit, int miss){
 void
 cache_access(vector<entry> &cache, unsigned long tmp, unsigned tag_shift,
 	unsigned long tmp_tag, unsigned long address, unsigned block_offset,
-	unsigned index_size){
+	unsigned index_size, cache_prof* prof_info){
 	unsigned long index, tag, old_address;
 	cout << "ADDR : " << address << " ";
 	index = address & tmp;
 	index = index >> block_offset;
 	tag = address & tmp_tag;
 	tag = tag >> tag_shift;
-	check++;
+	prof_info->check++;
 	if (cache[index].valid == 1 && cache[index].tag == tag) {
-		hit++;
+		prof_info->hit++;
 		cout << "HIT with index: ";
 		print_bin_index(index,index_size);
 	}
 	else {
-		miss++;
+		prof_info->miss++;
 		if(cache[index].valid==1){
 			old_address = return_word(cache[index].tag,tag_shift,index,block_offset);
 			cout <<"miss, replace address: "<< old_address;
@@ -139,22 +138,27 @@ cache_access(vector<entry> &cache, unsigned long tmp, unsigned tag_shift,
 	}
 	cout << endl;
 }
+
 int
 main(void){
 /******************************** Variables declarations **********************/
 	unsigned i, j, no_blocks, block_offset, tag_shift, tag_size, index_size;
 	string filename;
 	unsigned no_set, asso = 1;
-	unsigned long cache_size, block_size, memory_size, tmp_tag, tmp;
+	unsigned long cache_size, block_size, memory_size, tmp_tag, tmp, address;
 	bitset<32> index_mask{ ULONG_MAX };
 	bitset<32> tag_mask;
 	string str;
 	ifstream infile;
 	vector<entry> cache;
 	entry init_entry;
+    cache_prof prof_info;
 /*********************************** Initialization ***************************/
 	init_entry.valid=0;
 	init_entry.tag=0;
+    prof_info.check = 0;
+    prof_info.hit = 0;
+    prof_info.miss = 0;
 	cout << "Enter the memory size: ";
 	cin >> memory_size;
 	bitset<32> bitset0{ memory_size };
@@ -199,7 +203,7 @@ main(void){
 			continue;
 		}
 		if(str.compare("exit") == 0 ) {
-			print_results(check,hit,miss);
+			print_results(&prof_info);
 			break;
 		}
 		//Input from file
@@ -219,7 +223,7 @@ main(void){
 			while (getline(infile, str)){
 				address = stoi(str);
 				cache_access(cache, tmp, tag_shift, tmp_tag, address,
-				block_offset, index_size);
+				block_offset, index_size, &prof_info);
 			}
 			str.clear();
 			infile.close();
@@ -232,7 +236,7 @@ main(void){
 		//Input single address
 		address = stoi(str);
 		cache_access(cache, tmp, tag_shift, tmp_tag, address,
-		block_offset, index_size);
+		block_offset, index_size, &prof_info);
 	}
 	return 0;
 }
