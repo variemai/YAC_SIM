@@ -35,8 +35,45 @@ typedef struct cache_characteristics{
     unsigned long tmp_tag; 
     unsigned long tmp;
 }cache_char;
-
-/*************************Functions Definitions and Declarations***************/
+/*************************Functions Declarations*******************************/
+void
+print_bin_index(unsigned long, unsigned);
+unsigned long 
+return_word(unsigned long , unsigned, unsigned long, unsigned );
+/*************************Functions Definitions********************************/
+void
+cache_access(vector<entry> &cache, unsigned long tmp, unsigned tag_shift,
+	unsigned long tmp_tag, unsigned long address, unsigned block_offset,
+	unsigned index_size, cache_prof* prof_info){
+	unsigned long index, tag, old_address;
+	cout << "ADDR : " << address << " ";
+	index = address & tmp;
+	index = index >> block_offset;
+	tag = address & tmp_tag;
+	tag = tag >> tag_shift;
+	prof_info->check++;
+	if (cache[index].valid == 1 && cache[index].tag == tag) {
+		prof_info->hit++;
+		cout << "HIT with index: ";
+		print_bin_index(index,index_size);
+	}
+	else {
+		prof_info->miss++;
+		if(cache[index].valid==1){
+			old_address = return_word(cache[index].tag,tag_shift,index,block_offset);
+			cout <<"miss, replace address: "<< old_address;
+			cout << "  with index: ";
+			print_bin_index(index,index_size);
+		}
+		else{
+			cout << "MISS, with index: ";
+			print_bin_index(index,index_size);
+			cache[index].valid = 1;
+		}
+		cache[index].tag = tag;
+	}
+	cout << endl;
+}
 unsigned
 powerof2(bitset<32> bitset1) {
 	unsigned i;
@@ -108,39 +145,6 @@ print_results(cache_prof *prof_info){
 	cout << "***************************************************"<< endl;
 }
 
-void
-cache_access(vector<entry> &cache, unsigned long tmp, unsigned tag_shift,
-	unsigned long tmp_tag, unsigned long address, unsigned block_offset,
-	unsigned index_size, cache_prof* prof_info){
-	unsigned long index, tag, old_address;
-	cout << "ADDR : " << address << " ";
-	index = address & tmp;
-	index = index >> block_offset;
-	tag = address & tmp_tag;
-	tag = tag >> tag_shift;
-	prof_info->check++;
-	if (cache[index].valid == 1 && cache[index].tag == tag) {
-		prof_info->hit++;
-		cout << "HIT with index: ";
-		print_bin_index(index,index_size);
-	}
-	else {
-		prof_info->miss++;
-		if(cache[index].valid==1){
-			old_address = return_word(cache[index].tag,tag_shift,index,block_offset);
-			cout <<"miss, replace address: "<< old_address;
-			cout << "  with index: ";
-			print_bin_index(index,index_size);
-		}
-		else{
-			cout << "MISS, with index: ";
-			print_bin_index(index,index_size);
-			cache[index].valid = 1;
-		}
-		cache[index].tag = tag;
-	}
-	cout << endl;
-}
 
 int
 main(void){
@@ -214,7 +218,7 @@ main(void){
 			cout << "Enter trace filename : ";
 			cin >> filename;
 			if(filename.size() > MAX_FILENAME){
-				cout << "Filename exceeded max size" << endl;
+				cout << "Filename exceeded max size\nExiting..." << endl;
 				exit(-1);
 			}
 			cout << "Filename given: " << filename << endl;
@@ -232,6 +236,7 @@ main(void){
 			infile.close();
 			continue;
 		}
+        //Display contents of cache
 		if(str.compare("display_contents") == 0 ){
 			display_contents(cache,no_set,tag_size,index_size);
 			continue;
