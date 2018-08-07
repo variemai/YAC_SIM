@@ -28,55 +28,109 @@ typedef struct cache_entry{
 	unsigned long tag;
 }entry;
 
-typedef struct cache_characteristics{
+typedef struct characteristics_of_cache{
 	unsigned long cache_size;
     unsigned long block_size;
-    unsigned long memory_size;
     unsigned long tmp_tag; 
     unsigned long tmp;
+    unsigned long memory_size;
+    unsigned no_blocks;
+    unsigned block_offset;
+    unsigned tag_shift;
+    unsigned tag_size;
+    unsigned index_size;
+    unsigned no_set;
+    unsigned asso = 1;
+	bitset<32> index_mask{ ULONG_MAX };
+	bitset<32> tag_mask;
 }cache_char;
+
 /*************************Functions Declarations*******************************/
+
+void
+set_cache_specs(unsigned long, unsigned long, unsigned long, cache_char*);
+
 void
 print_bin_index(unsigned long, unsigned);
+
 unsigned long 
 return_word(unsigned long , unsigned, unsigned long, unsigned );
+
+unsigned
+powerof2(bitset<32>);
+
 /*************************Functions Definitions********************************/
+
 void
-cache_access(vector<entry> &cache, unsigned long tmp, unsigned tag_shift,
-	unsigned long tmp_tag, unsigned long address, unsigned block_offset,
-	unsigned index_size, cache_prof* prof_info){
-	unsigned long index, tag, old_address;
+set_cache_specs(unsigned long cache_size, unsigned long block_size, 
+        unsigned long memory_size, cache_char* characteristics){
+    
+    unsigned i, j;
+	bitset<32> bitset0{ memory_size };
+    bitset<32> bitset1{ cache_size };
+	bitset<32> bitset2{ block_size };
+    characteristics->cache_size = cache_size;
+    characteristics->block_size = block_size;
+	characteristics->tag_size = powerof2(bitset0);
+	i = powerof2(bitset1);
+	characteristics->index_size = i;
+	characteristics->index_mask = characteristics->index_mask << i;
+	characteristics->tag_mask = characteristics->index_mask;
+	characteristics->index_mask = ~characteristics->index_mask;
+    characteristics->block_offset = powerof2(bitset2);
+    characteristics->index_size = characteristics->index_size -
+        characteristics->block_offset;
+    for(j=0; j<characteristics->block_offset; j++){
+        characteristics->index_mask[j]=0;
+    }
+    characteristics->tag_shift = i;
+    characteristics->no_blocks = characteristics->cache_size / block_size;
+    characteristics->no_set=characteristics->no_blocks/characteristics->asso;
+    characteristics->tag_size = characteristics->tag_size - i;
+    characteristics->tmp = characteristics->index_mask.to_ulong();
+    characteristics->tmp_tag = characteristics->tag_mask.to_ulong();
+}
+
+
+void
+cache_access(vector<entry> &cache, unsigned long address, 
+       cache_char* specs, cache_prof* prof_info){
+	
+    unsigned long index, tag, old_address;
 	cout << "ADDR : " << address << " ";
-	index = address & tmp;
-	index = index >> block_offset;
-	tag = address & tmp_tag;
-	tag = tag >> tag_shift;
+	index = address & specs->tmp;
+	index = index >> specs->block_offset;
+	tag = address & specs->tmp_tag;
+	tag = tag >> specs->tag_shift;
 	prof_info->check++;
 	if (cache[index].valid == 1 && cache[index].tag == tag) {
 		prof_info->hit++;
 		cout << "HIT with index: ";
-		print_bin_index(index,index_size);
+		print_bin_index(index,specs->index_size);
 	}
 	else {
 		prof_info->miss++;
 		if(cache[index].valid==1){
-			old_address = return_word(cache[index].tag,tag_shift,index,block_offset);
+			old_address = return_word(cache[index].tag,specs->tag_shift,index,specs->block_offset);
 			cout <<"miss, replace address: "<< old_address;
 			cout << "  with index: ";
-			print_bin_index(index,index_size);
+			print_bin_index(index,specs->index_size);
 		}
 		else{
 			cout << "MISS, with index: ";
-			print_bin_index(index,index_size);
+			print_bin_index(index,specs->index_size);
 			cache[index].valid = 1;
 		}
 		cache[index].tag = tag;
 	}
 	cout << endl;
 }
+
+
 unsigned
 powerof2(bitset<32> bitset1) {
-	unsigned i;
+	
+    unsigned i;
 	for (i = 0; i < bitset1.size(); i++)
 	{
 		if (bitset1[i] == 1) break;
@@ -86,7 +140,8 @@ powerof2(bitset<32> bitset1) {
 
 unsigned
 pow2(unsigned num){
-	unsigned i = 0;
+	
+    unsigned i = 0;
 	while(num != 0 && num!=1 ){
 		num = num / 2;
 		i++;
@@ -96,25 +151,24 @@ pow2(unsigned num){
 
 void
 print_bin_index(unsigned long index, unsigned size){
-	bitset<32> bits = {index};
+	
+    bitset<32> bits = {index};
 	for(unsigned i=size-1; i>=0; i--){
 		cout << bits[i];
 		if(i==0) break;
 	}
 }
 
-void set_cache_characteristics(){
-}
 
 void
-display_contents(vector<entry> &cache, unsigned no_set, unsigned tag_size,
-	unsigned index_size){
-	for(unsigned i=0; i<no_set; i++) {
+display_contents(vector<entry> &cache, cache_char* specs){
+	
+    for(unsigned i=0; i<specs->no_set; i++) {
 		bitset<32> bits = {cache[i].tag};
 		cout << "Index: ";
-		print_bin_index(i,index_size);
+		print_bin_index(i,specs->index_size);
 		cout << " Valid: " << cache[i].valid << ", Tag: ";
-		for(unsigned j=tag_size-1; j>=0; j--){
+		for(unsigned j=specs->tag_size-1; j>=0; j--){
 			cout << bits[j] ;
 			if (j==0) break;
 		}
@@ -124,7 +178,8 @@ display_contents(vector<entry> &cache, unsigned no_set, unsigned tag_size,
 
 unsigned long
 return_word(unsigned long tag, unsigned tag_shift, unsigned long index,
-	unsigned block_offset){
+	
+        unsigned block_offset){
 	unsigned long retval;
 	retval = tag << tag_shift;
 	index = index << block_offset;
@@ -134,7 +189,8 @@ return_word(unsigned long tag, unsigned tag_shift, unsigned long index,
 
 void
 print_results(cache_prof *prof_info){
-	if(prof_info->check == 0 ) return ;
+	
+    if(prof_info->check == 0 ) return ;
 	float hitrate = 0.0;
 	cout << "************* Cache Simulation Results ************"<< endl;
 	printf ("*             Total ACCESSES : %18d *\n",prof_info->check);
@@ -149,17 +205,14 @@ print_results(cache_prof *prof_info){
 int
 main(void){
 /******************************** Variables declarations **********************/
-	unsigned i, j, no_blocks, block_offset, tag_shift, tag_size, index_size;
 	string filename;
-	unsigned no_set, asso = 1;
-	unsigned long cache_size, block_size, memory_size, tmp_tag, tmp, address;
-	bitset<32> index_mask{ ULONG_MAX };
-	bitset<32> tag_mask;
+	unsigned long cache_size, block_size, memory_size, address;
 	string str;
 	ifstream infile;
 	vector<entry> cache;
 	entry init_entry;
     cache_prof prof_info;
+    cache_char cache_specs;
 /*********************************** Initialization ***************************/
 	init_entry.valid=0;
 	init_entry.tag=0;
@@ -168,36 +221,16 @@ main(void){
     prof_info.miss = 0;
 	cout << "Enter the memory size: ";
 	cin >> memory_size;
-	bitset<32> bitset0{ memory_size };
-	tag_size = powerof2(bitset0);
 	cout << "Enter the cache size: ";
 	cin >> cache_size;
-	bitset<32> bitset1{ cache_size };
 	cout << "Enter the size of the Word: ";
 	cin >> word_size;
-	i = powerof2(bitset1);
-	index_size = i;
-	index_mask = index_mask << i;
-	index_mask = ~index_mask;
-	tag_mask = ~index_mask;
 	cout << "Enter the block size: ";
 	cin >> block_size;
-	bitset<32> bitset2{ block_size };
-	block_offset = powerof2(bitset2);
-	index_size = index_size - block_offset;
-	for (j = 0; j < block_offset; j++)
-	{
-		index_mask[j] = 0;
-	}
-	tag_shift = i;
-	no_blocks = cache_size / block_size ;
-	no_set = no_blocks / asso;
-	for(unsigned i=0; i<no_set; i++){
+    set_cache_specs(cache_size,block_size,memory_size,&cache_specs);
+	for(unsigned i=0; i<cache_specs.no_set; i++){
 		cache.push_back(init_entry);
 	}
-	tag_size = tag_size - i;
-	tmp = index_mask.to_ulong();
-	tmp_tag = tag_mask.to_ulong();
 
 /***************************Simulation Starting********************************/
 	printf("Insert an address or a valid command\n");
@@ -229,8 +262,7 @@ main(void){
 			}
 			while (getline(infile, str)){
 				address = stoi(str);
-				cache_access(cache, tmp, tag_shift, tmp_tag, address,
-				block_offset, index_size, &prof_info);
+                cache_access(cache, address, &cache_specs,&prof_info);
 			}
 			str.clear();
 			infile.close();
@@ -238,13 +270,11 @@ main(void){
 		}
         //Display contents of cache
 		if(str.compare("display_contents") == 0 ){
-			display_contents(cache,no_set,tag_size,index_size);
 			continue;
 		}
 		//Input single address
 		address = stoi(str);
-		cache_access(cache, tmp, tag_shift, tmp_tag, address,
-		block_offset, index_size, &prof_info);
+        cache_access(cache, address, &cache_specs,&prof_info);
 	}
 	return 0;
 }
