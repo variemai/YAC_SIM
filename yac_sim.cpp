@@ -33,7 +33,7 @@ typedef struct characteristics_of_cache{
     unsigned long block_size;
     unsigned long tmp_tag; 
     unsigned long tmp;
-    unsigned long memory_size;
+    //unsigned long memory_size;
     unsigned no_blocks;
     unsigned block_offset;
     unsigned tag_shift;
