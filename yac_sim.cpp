@@ -24,8 +24,9 @@ typedef struct profile_info{
 
 /*Create entry struct for cache*/
 typedef struct cache_entry{
-	unsigned short valid;
-	unsigned long tag;
+	unsigned short valid[16]; /*TODO use dynamic tables */
+	unsigned long tag[16];
+    unsigned short LRU[16];
 }entry;
 
 typedef struct characteristics_of_cache{
@@ -87,7 +88,7 @@ set_cache_specs(unsigned long cache_size, unsigned long block_size,
     for(j=0; j<characteristics->block_offset; j++){
         index_mask[j]=0;
     }
-    characteristics->tag_shift = i+pow_of_asso;
+    characteristics->tag_shift = i-pow_of_asso;
     no_blocks = cache_size / block_size;
     characteristics->no_set=no_blocks/characteristics->asso;
     characteristics->tag_size = characteristics->tag_size - i + pow_of_asso;
@@ -98,7 +99,8 @@ set_cache_specs(unsigned long cache_size, unsigned long block_size,
 void print_specs(cache_char* specs){
     cout<<"Tag Size: "<<specs->tag_size<<"\nIndex size: "<<specs->index_size
         <<endl<<"Tmp: "<<specs->tmp<<"\nTmp_tag: "<<specs->tmp_tag<<endl;
-    cout <<"Tag Shift: "<<specs->tag_shift<<endl;
+    cout << "Tag Shift: " << specs->tag_shift<<endl;
+    cout << "Number of Sets: "<< specs->no_set << endl;
 }
 
 void
@@ -106,12 +108,68 @@ cache_access(vector<entry> &cache, unsigned long address,
        cache_char* specs, cache_prof* prof_info){
 	
     unsigned long index, tag, old_address;
+    unsigned short done, min_lru, min_index;
 	cout << "ADDR : " << address << " ";
 	index = address & specs->tmp;
 	index = index >> specs->block_offset;
 	tag = address & specs->tmp_tag;
 	tag = tag >> specs->tag_shift;
+    cout << "TAG: " << tag <<endl;
 	prof_info->check++;
+    done = 0;
+    min_lru = 0;
+    min_index = 0;
+    for(unsigned i=0; i<specs->asso; i++){
+	    if (cache[index].valid[i] == 1 && cache[index].tag[i] == tag) {
+		    prof_info->hit++;
+            /*Update the LRU info*/
+            cache[index].LRU[i]++;
+		    cout << "HIT with index: ";
+		    print_bin_index(index,specs->index_size);
+            cout << " WAY: " << i;
+            done = 1;
+	    }
+    }
+    if(!done){
+        prof_info->miss++;
+        /*Miss-first search for an invalid position in the way*/
+        for(unsigned i=0; i<specs->asso; i++){
+            if(cache[index].valid[i] == 0){
+                cache[index].tag[i] = tag;
+                cache[index].valid[i] = 1;
+                cache[index].LRU[i] = 1;
+                cout << "MISS, with index: ";
+                print_bin_index(index,specs->index_size);
+                cout << " WAY: " << i;
+                done = 1;
+                break;
+            }
+        }
+        if(!done && specs->asso > 1){
+            /*LRU replacement algorithm*/
+            min_lru = cache[index].LRU[0];
+            for(unsigned i=0; i<specs->asso; i++){
+                if(min_lru < cache[index].LRU[i]){
+                    min_lru = cache[index].LRU[i];
+                    min_index = i;
+                }
+            }
+            old_address=return_word(cache[index].tag[min_index],specs->tag_shift,index,specs->block_offset);
+			cout <<"MISS, Replace address: "<< old_address;
+			cout << "  with index: ";
+			print_bin_index(index,specs->index_size);
+            cout << " WAY: " << min_index;
+            cache[index].tag[min_index] = tag;
+        }
+        else if(!done && specs->asso == 1){
+			old_address = return_word(cache[index].tag[0],specs->tag_shift,index,specs->block_offset);
+			cout <<"miss, replace address: "<< old_address;
+			cout << "  with index: ";
+			print_bin_index(index,specs->index_size);
+		    cache[index].tag[0] = tag;
+        }
+    }
+    /*
 	if (cache[index].valid == 1 && cache[index].tag == tag) {
 		prof_info->hit++;
 		cout << "HIT with index: ";
@@ -131,7 +189,7 @@ cache_access(vector<entry> &cache, unsigned long address,
 			cache[index].valid = 1;
 		}
 		cache[index].tag = tag;
-	}
+	}*/
 	cout << endl;
 }
 
@@ -173,7 +231,7 @@ void
 display_contents(vector<entry> &cache, cache_char* specs){
 	
     for(unsigned i=0; i<specs->no_set; i++) {
-		bitset<32> bits = {cache[i].tag};
+		bitset<32> bits = {cache[i].tag[0]};
 		cout << "Index: ";
 		print_bin_index(i,specs->index_size);
 		cout << " Valid: " << cache[i].valid << ", Tag: ";
@@ -224,8 +282,6 @@ main(void){
     cache_prof prof_info;
     cache_char cache_specs;
 /*********************************** Initialization ***************************/
-	init_entry.valid=0;
-	init_entry.tag=0;
     prof_info.check = 0;
     prof_info.hit = 0;
     prof_info.miss = 0;
@@ -240,6 +296,10 @@ main(void){
 	cout << "Enter associativity (1,2,4,8 or 16): ";
 	cin >> asso;
     set_cache_specs(cache_size,block_size,memory_size,asso, &cache_specs);
+    for(unsigned i=0; i<asso; i++){
+        init_entry.tag[i] = 0;
+        init_entry.valid[i] = 0;
+    }
 	for(unsigned i=0; i<cache_specs.no_set; i++){
 		cache.push_back(init_entry);
 	}
