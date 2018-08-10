@@ -42,6 +42,8 @@ typedef struct characteristics_of_cache{
 }cache_char;
 
 /*************************Functions Declarations*******************************/
+unsigned
+LRU_policy(vector<entry> &cache,cache_char*);
 
 void
 set_cache_specs(unsigned long,unsigned long,unsigned long,unsigned,cache_char*);
@@ -59,6 +61,21 @@ unsigned
 pow2(unsigned );
 
 /*************************Functions Definitions********************************/
+
+unsigned 
+LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index){
+    unsigned short min_lru;
+    unsigned way;
+    min_lru = cache[index].LRU[0];
+    for(unsigned i=0; i<specs->asso; i++){
+        if(cache[index].LRU[i] < min_lru ){
+            min_lru = cache[index].LRU[i];
+            way = i;
+            cout << " MIN_LRU =  " << min_lru << " ";
+        }
+    }
+    return way;
+}
 
 void
 set_cache_specs(unsigned long cache_size, unsigned long block_size, 
@@ -106,7 +123,8 @@ cache_access(vector<entry> &cache, unsigned long address,
        cache_char* specs, cache_prof* prof_info){
 	
     unsigned long index, tag, old_address;
-    unsigned short done, min_lru, way;
+    unsigned short done, min_lru;
+    unsigned way;
 	cout << "ADDR : " << address << " ";
 	index = address & specs->tmp;
 	index = index >> specs->block_offset;
@@ -325,7 +343,7 @@ main(void){
 		if(str.compare("cmd") == 0){
 			printf("\texit:\t\t\t\tPrints the results and exits YAC SIM\n");
 			printf("\tsource:\t\t\t\tRead addresses from a file\n");
-			printf("\tdisplay_contents:\t\tPrints the contents of the Cache\n");
+			printf("\tdisplay:\t\t\tPrints the contents of the Cache\n");
 			continue;
 		}
 		if(str.compare("exit") == 0 ) {
