@@ -11,6 +11,7 @@
 #include <vector>
 #include <stdint.h>
 #include <bitset>
+#include <locale>
 #define MAX_FILENAME 256
 using namespace std;
 
@@ -30,12 +31,8 @@ typedef struct cache_entry{
 }entry;
 
 typedef struct characteristics_of_cache{
-    //unsigned long cache_size;
-    //unsigned long block_size;
     unsigned long tmp_tag; 
     unsigned long tmp;
-    //unsigned long memory_size;
-    //unsigned no_blocks;
     unsigned block_offset;
     unsigned tag_shift;
     unsigned tag_size;
@@ -88,6 +85,7 @@ set_cache_specs(unsigned long cache_size, unsigned long block_size,
     for(j=0; j<characteristics->block_offset; j++){
         index_mask[j]=0;
     }
+    /*The number of bits needed for RIGHT shift for tag*/
     characteristics->tag_shift = i-pow_of_asso;
     no_blocks = cache_size / block_size;
     characteristics->no_set=no_blocks/characteristics->asso;
@@ -114,7 +112,7 @@ cache_access(vector<entry> &cache, unsigned long address,
 	index = index >> specs->block_offset;
 	tag = address & specs->tmp_tag;
 	tag = tag >> specs->tag_shift;
-    cout << "TAG: " << tag <<endl;
+    /*cout << "TAG: " << tag <<endl;*/
 	prof_info->check++;
     done = 0;
     min_lru = 0;
@@ -126,7 +124,9 @@ cache_access(vector<entry> &cache, unsigned long address,
             cache[index].LRU[i]++;
 		    cout << "HIT with index: ";
 		    print_bin_index(index,specs->index_size);
-            cout << " WAY: " << i;
+            if(specs->asso > 1) {
+                cout << " WAY: " << i;
+            }
             done = 1;
 	    }
     }
@@ -231,16 +231,19 @@ void
 display_contents(vector<entry> &cache, cache_char* specs){
 	
     for(unsigned i=0; i<specs->no_set; i++) {
-		bitset<32> bits = {cache[i].tag[0]};
+        for(unsigned j=0; j<specs->asso; j++){
+		bitset<32> bits = {cache[i].tag[j]};
 		cout << "Index: ";
 		print_bin_index(i,specs->index_size);
-		cout << " Valid: " << cache[i].valid << ", Tag: ";
+        cout << " Way: " << j;
+		cout << " Valid: " << cache[i].valid[j] << ", Tag: ";
 		for(unsigned j=specs->tag_size-1; j>=0; j--){
 			cout << bits[j] ;
 			if (j==0) break;
 		}
 		cout << endl;
 	}
+    }
 }
 
 unsigned long
@@ -281,10 +284,14 @@ main(void){
 	entry init_entry;
     cache_prof prof_info;
     cache_char cache_specs;
+    int alnum_flag;
+    string::size_type i;
+    locale loc;
 /*********************************** Initialization ***************************/
     prof_info.check = 0;
     prof_info.hit = 0;
     prof_info.miss = 0;
+    i = 0;
 	cout << "Enter the memory size: ";
 	cin >> memory_size;
 	cout << "Enter the cache size: ";
@@ -342,11 +349,24 @@ main(void){
 			continue;
 		}
         /*Display contents of cache*/
-		if(str.compare("display_contents") == 0 ){
+		if(str.compare("display") == 0 ){
             display_contents(cache,&cache_specs);
 			continue;
 		}
 		/*Input single address*/
+        alnum_flag = 0;
+        while(i<str.length()){
+            if(isdigit(str[i])==false){
+                alnum_flag = 1;
+                break;
+            } 
+            i++;
+        }
+        i = 0;
+        if(alnum_flag == 1){
+            cout << "Address not alphanumeric"<< endl;
+            continue;
+        }
 		address = stoi(str);
         cache_access(cache, address, &cache_specs,&prof_info);
 	}
