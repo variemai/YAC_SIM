@@ -141,6 +141,7 @@ cache_access(vector<entry> &cache, unsigned long address,
                 cout << "MISS, with index: ";
                 print_bin_index(index,specs->index_size);
                 cout << " WAY: " << i;
+                cout << " LRU: " << cache[index].LRU[i] ;
                 done = 1;
                 break;
             }
@@ -149,9 +150,10 @@ cache_access(vector<entry> &cache, unsigned long address,
             /*LRU replacement algorithm*/
             min_lru = cache[index].LRU[0];
             for(unsigned i=0; i<specs->asso; i++){
-                if(min_lru < cache[index].LRU[i]){
+                if(cache[index].LRU[i] < min_lru ){
                     min_lru = cache[index].LRU[i];
                     min_index = i;
+                    cout << " MIN_LRU =  " << min_lru << " ";
                 }
             }
             old_address=return_word(cache[index].tag[min_index],specs->tag_shift,index,specs->block_offset);
@@ -159,7 +161,9 @@ cache_access(vector<entry> &cache, unsigned long address,
 			cout << "  with index: ";
 			print_bin_index(index,specs->index_size);
             cout << " WAY: " << min_index;
+            cout << " LRU: " << cache[index].LRU[min_index] ;
             cache[index].tag[min_index] = tag;
+            cache[index].LRU[min_index] = 1;
         }
         else if(!done && specs->asso == 1){
 			old_address = return_word(cache[index].tag[0],specs->tag_shift,index,specs->block_offset);
@@ -237,10 +241,11 @@ display_contents(vector<entry> &cache, cache_char* specs){
 		print_bin_index(i,specs->index_size);
         cout << " Way: " << j;
 		cout << " Valid: " << cache[i].valid[j] << ", Tag: ";
-		for(unsigned j=specs->tag_size-1; j>=0; j--){
-			cout << bits[j] ;
-			if (j==0) break;
+		for(unsigned k=specs->tag_size-1; k>=0; k--){
+			cout << bits[k] ;
+			if (k==0) break;
 		}
+        cout << " LRU: " << cache[i].LRU[j];
 		cout << endl;
 	}
     }
@@ -306,6 +311,7 @@ main(void){
     for(unsigned i=0; i<asso; i++){
         init_entry.tag[i] = 0;
         init_entry.valid[i] = 0;
+        init_entry.LRU[i] = 0;
     }
 	for(unsigned i=0; i<cache_specs.no_set; i++){
 		cache.push_back(init_entry);
