@@ -106,7 +106,7 @@ cache_access(vector<entry> &cache, unsigned long address,
        cache_char* specs, cache_prof* prof_info){
 	
     unsigned long index, tag, old_address;
-    unsigned short done, min_lru, min_index;
+    unsigned short done, min_lru, way;
 	cout << "ADDR : " << address << " ";
 	index = address & specs->tmp;
 	index = index >> specs->block_offset;
@@ -116,7 +116,7 @@ cache_access(vector<entry> &cache, unsigned long address,
 	prof_info->check++;
     done = 0;
     min_lru = 0;
-    min_index = 0;
+    way = 0;
     for(unsigned i=0; i<specs->asso; i++){
 	    if (cache[index].valid[i] == 1 && cache[index].tag[i] == tag) {
 		    prof_info->hit++;
@@ -152,18 +152,18 @@ cache_access(vector<entry> &cache, unsigned long address,
             for(unsigned i=0; i<specs->asso; i++){
                 if(cache[index].LRU[i] < min_lru ){
                     min_lru = cache[index].LRU[i];
-                    min_index = i;
+                    way = i;
                     cout << " MIN_LRU =  " << min_lru << " ";
                 }
             }
-            old_address=return_word(cache[index].tag[min_index],specs->tag_shift,index,specs->block_offset);
+            old_address=return_word(cache[index].tag[way],specs->tag_shift,index,specs->block_offset);
 			cout <<"MISS, Replace address: "<< old_address;
 			cout << "  with index: ";
 			print_bin_index(index,specs->index_size);
-            cout << " WAY: " << min_index;
-            cout << " LRU: " << cache[index].LRU[min_index] ;
-            cache[index].tag[min_index] = tag;
-            cache[index].LRU[min_index] = 1;
+            cout << " WAY: " << way;
+            cout << " LRU: " << cache[index].LRU[way] ;
+            cache[index].tag[way] = tag;
+            cache[index].LRU[way] = 1;
         }
         else if(!done && specs->asso == 1){
 			old_address = return_word(cache[index].tag[0],specs->tag_shift,index,specs->block_offset);
