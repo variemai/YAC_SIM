@@ -1,5 +1,5 @@
 CPP=g++
-CPPFLAGS=-std=c++11 -Wall -pedantic
+CPPFLAGS=-std=c++14 -Wall -pedantic
 
 yac_sim: yac_sim.o
 	$(CPP) $(CPPFLAGS) -o yac_sim yac_sim.o

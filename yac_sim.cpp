@@ -23,47 +23,44 @@ typedef struct profile_info{
 	int miss;
 }cache_prof;
 
-/*Create entry struct for cache*/
+/*Cache entry layout*/
 typedef struct cache_entry{
 	unsigned short valid[16]; /*TODO use dynamic tables */
 	unsigned long tag[16];
     unsigned short LRU[16];
 }entry;
 
+/*Cache characteristics and some useful masks for bit operations*/
 typedef struct characteristics_of_cache{
-    unsigned long tmp_tag; 
-    unsigned long tmp;
+    unsigned long tmp_tag; /*tag mask*/
+    unsigned long tmp; /*index mask*/
     unsigned block_offset;
-    unsigned tag_shift;
-    unsigned tag_size;
+    unsigned tag_shift; /*how many bits are the tag bits shifted to the left*/
+    unsigned tag_size; /*in bits*/
     unsigned index_size;
     unsigned no_set;
     unsigned asso = 1;
 }cache_char;
 
 /*************************Functions Declarations*******************************/
-unsigned
-LRU_policy(vector<entry> &cache,cache_char*);
 
-void
-set_cache_specs(unsigned long,unsigned long,unsigned long,unsigned,cache_char*);
+unsigned LRU_policy(vector<entry> &cache,cache_char*);
 
-void
-print_bin_index(unsigned long, unsigned);
+void set_cache_specs(unsigned long,unsigned long,unsigned long,unsigned,
+        cache_char*);
 
-unsigned long 
-return_word(unsigned long , unsigned, unsigned long, unsigned );
+void print_bin_index(unsigned long, unsigned);
 
-unsigned
-powerof2(bitset<32>);
+unsigned long return_word(unsigned long , unsigned, unsigned long, unsigned );
 
-unsigned
-pow2(unsigned );
+unsigned powerof2(bitset<32>);
+
+unsigned pow2(unsigned );
 
 /*************************Functions Definitions********************************/
 
-unsigned 
-LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index){
+unsigned LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index)
+{
     unsigned short min_lru;
     unsigned way;
     min_lru = cache[index].LRU[0];
@@ -77,10 +74,9 @@ LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index){
     return way;
 }
 
-void
-set_cache_specs(unsigned long cache_size, unsigned long block_size, 
-        unsigned long memory_size,unsigned asso, cache_char* characteristics){
-    
+void set_cache_specs(unsigned long cache_size, unsigned long block_size, 
+        unsigned long memory_size,unsigned asso, cache_char* characteristics)
+{
     unsigned i, j;
     unsigned long no_blocks;
 	bitset<32> tag_mask;
@@ -88,8 +84,8 @@ set_cache_specs(unsigned long cache_size, unsigned long block_size,
 	bitset<32> bitset0{ memory_size };
     bitset<32> bitset1{ cache_size };
 	bitset<32> bitset2{ block_size };
-    unsigned pow_of_asso = pow2(asso);
 	characteristics->tag_size = powerof2(bitset0);
+    unsigned pow_of_asso = pow2(asso);
 	i = powerof2(bitset1);
 	characteristics->index_size = i - pow_of_asso;
 	index_mask = index_mask << characteristics->index_size;
@@ -111,21 +107,21 @@ set_cache_specs(unsigned long cache_size, unsigned long block_size,
     characteristics->tmp_tag = tag_mask.to_ulong();
 }
 
-void print_specs(cache_char* specs){
+void print_specs(cache_char* specs)
+{
     cout<<"Tag Size: "<<specs->tag_size<<"\nIndex size: "<<specs->index_size
         <<endl<<"Tmp: "<<specs->tmp<<"\nTmp_tag: "<<specs->tmp_tag<<endl;
     cout << "Tag Shift: " << specs->tag_shift<<endl;
     cout << "Number of Sets: "<< specs->no_set << endl;
 }
 
-void
-cache_access(vector<entry> &cache, unsigned long address, 
-       cache_char* specs, cache_prof* prof_info){
-	
+void cache_access(vector<entry> &cache, unsigned long address, 
+       cache_char* specs, cache_prof* prof_info)
+{
     unsigned long index, tag, old_address;
     unsigned short done, min_lru;
     unsigned way;
-	cout << "ADDR : " << address << " ";
+	cout << "ADDR: " << address << " ";
 	index = address & specs->tmp;
 	index = index >> specs->block_offset;
 	tag = address & specs->tmp_tag;
@@ -174,7 +170,8 @@ cache_access(vector<entry> &cache, unsigned long address,
                     cout << " MIN_LRU =  " << min_lru << " ";
                 }
             }
-            old_address=return_word(cache[index].tag[way],specs->tag_shift,index,specs->block_offset);
+            old_address=return_word(cache[index].tag[way],specs->tag_shift,
+                    index,specs->block_offset);
 			cout <<"MISS, Replace address: "<< old_address;
 			cout << "  with index: ";
 			print_bin_index(index,specs->index_size);
@@ -183,42 +180,22 @@ cache_access(vector<entry> &cache, unsigned long address,
             cache[index].tag[way] = tag;
             cache[index].LRU[way] = 1;
         }
+        /*Directed mapped cache access no need for LRU*/
         else if(!done && specs->asso == 1){
-			old_address = return_word(cache[index].tag[0],specs->tag_shift,index,specs->block_offset);
+			old_address = return_word(cache[index].tag[0],specs->tag_shift,
+                    index,specs->block_offset);
 			cout <<"miss, replace address: "<< old_address;
 			cout << "  with index: ";
 			print_bin_index(index,specs->index_size);
 		    cache[index].tag[0] = tag;
         }
     }
-    /*
-	if (cache[index].valid == 1 && cache[index].tag == tag) {
-		prof_info->hit++;
-		cout << "HIT with index: ";
-		print_bin_index(index,specs->index_size);
-	}
-	else {
-		prof_info->miss++;
-		if(cache[index].valid==1){
-			old_address = return_word(cache[index].tag,specs->tag_shift,index,specs->block_offset);
-			cout <<"miss, replace address: "<< old_address;
-			cout << "  with index: ";
-			print_bin_index(index,specs->index_size);
-		}
-		else{
-			cout << "MISS, with index: ";
-			print_bin_index(index,specs->index_size);
-			cache[index].valid = 1;
-		}
-		cache[index].tag = tag;
-	}*/
 	cout << endl;
 }
 
 
-unsigned
-powerof2(bitset<32> bitset1) {
-	
+unsigned powerof2(bitset<32> bitset1) 
+{	
     unsigned i;
 	for (i = 0; i < bitset1.size(); i++)
 	{
@@ -227,9 +204,8 @@ powerof2(bitset<32> bitset1) {
 	return i;
 }
 
-unsigned
-pow2(unsigned num){
-	
+unsigned pow2(unsigned num)
+{
     unsigned i = 0;
 	while(num != 0 && num!=1 ){
 		num = num / 2;
@@ -238,9 +214,8 @@ pow2(unsigned num){
 	return i;
 }
 
-void
-print_bin_index(unsigned long index, unsigned size){
-	
+void print_bin_index(unsigned long index, unsigned size)
+{
     bitset<32> bits = {index};
 	for(unsigned i=size-1; i>=0; i--){
 		cout << bits[i];
@@ -249,9 +224,8 @@ print_bin_index(unsigned long index, unsigned size){
 }
 
 
-void
-display_contents(vector<entry> &cache, cache_char* specs){
-	
+void display_contents(vector<entry> &cache, cache_char* specs)
+{
     for(unsigned i=0; i<specs->no_set; i++) {
         for(unsigned j=0; j<specs->asso; j++){
 		bitset<32> bits = {cache[i].tag[j]};
@@ -269,10 +243,9 @@ display_contents(vector<entry> &cache, cache_char* specs){
     }
 }
 
-unsigned long
-return_word(unsigned long tag, unsigned tag_shift, unsigned long index,
-	unsigned block_offset){
-	
+unsigned long return_word(unsigned long tag, unsigned tag_shift, 
+        unsigned long index, unsigned block_offset)
+{	
     unsigned long retval;
 	retval = tag << tag_shift;
 	index = index << block_offset;
@@ -280,9 +253,8 @@ return_word(unsigned long tag, unsigned tag_shift, unsigned long index,
 	return retval;
 }
 
-void
-print_results(cache_prof *prof_info){
-	
+void print_results(cache_prof *prof_info)
+{
     if(prof_info->check == 0 ) return ;
 	float hitrate = 0.0;
 	cout << "************* Cache Simulation Results ************"<< endl;
@@ -296,7 +268,8 @@ print_results(cache_prof *prof_info){
 
 
 int
-main(void){
+main(void)
+{
 /******************************** Variables declarations **********************/
 	string filename;
     unsigned asso;
@@ -341,9 +314,9 @@ main(void){
 	printf("For a list of the available commands type \"cmd\"\n");
 	while (cin >> str){
 		if(str.compare("cmd") == 0){
-			printf("\texit:\t\t\t\tPrints the results and exits YAC SIM\n");
-			printf("\tsource:\t\t\t\tRead addresses from a file\n");
-			printf("\tdisplay:\t\t\tPrints the contents of the Cache\n");
+			printf("\texit:\t\tPrints the results and exits YAC SIM\n");
+			printf("\tsource:\t\tRead addresses from a file\n");
+			printf("\tdisplay:\tPrints the contents of the Cache\n");
 			continue;
 		}
 		if(str.compare("exit") == 0 ) {
