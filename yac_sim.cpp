@@ -77,6 +77,7 @@ unsigned LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index)
 {
     unsigned short min_lru;
     unsigned way;
+    way = 0 ;
     min_lru = cache[index].LRU[0];
     for(unsigned i=0; i<specs->asso; i++){
         if(cache[index].LRU[i] < min_lru ){
