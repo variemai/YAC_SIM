@@ -1,7 +1,8 @@
 /*****************************************************************************\
-* YAC Sim Cache simulator for the purposes of CS-225 course CSD, University of 
-* Crete, creates a cache with user defined attributes and simulates accesses
-* Copyright (C) 2018  Ioannis Vardas
+* YAC Sim - Yet Another Cache Simulator, created for the purposes of CS-225 
+* course CSD, University of Crete, creates a cache with user defined attributes 
+* and simulates accesses
+* Copyright (C) 2018  Ioannis Vardas - vardas@ics.forth.gr
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -280,8 +281,7 @@ void print_results(cache_prof *prof_info)
 }
 
 
-int
-main(void)
+int main(void)
 {
 /******************************** Variables declarations **********************/
 	string filename;
@@ -301,7 +301,11 @@ main(void)
     prof_info.hit = 0;
     prof_info.miss = 0;
     i = 0;
-    cout << "";
+    /*Print info about GPL licence*/
+    cout << "\nYAC Simulator, Copyright (C) 2018 Ioannis Vardas ";
+    cout << "vardas@ics.forth.gr\nThis program is under "; 
+    cout << "the terms of the GNU General Public License v3\nFor more info see";
+    cout << ": <https://www.gnu.org/licenses/>" << endl << endl;
 	cout << "Enter the memory size: ";
 	cin >> memory_size;
 	cout << "Enter the cache size: ";
