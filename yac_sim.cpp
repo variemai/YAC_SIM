@@ -1,7 +1,7 @@
 /*****************************************************************************\
 * YAC Sim - Yet Another Cache Simulator, created for the purposes of CS-225 
 * course CSD, University of Crete, creates a cache with user defined attributes 
-* and simulates accesses
+* and simulates accesses from user input
 * Copyright (C) 2018  Ioannis Vardas - vardas@ics.forth.gr
 *
 * This program is free software: you can redistribute it and/or modify
