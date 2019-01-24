@@ -56,7 +56,7 @@ typedef struct characteristics_of_cache{
     unsigned asso = 1;
 }cache_char;
 
-/*************************Functions Declarations*******************************/
+/*************************Function Declarations*******************************/
 
 unsigned LRU_policy(vector<entry> &cache,cache_char*);
 
@@ -71,7 +71,9 @@ unsigned powerof2(bitset<32>);
 
 unsigned pow2(unsigned );
 
-/*************************Functions Definitions********************************/
+void clear_contents(vector<entry> &cache, cache_char*);
+
+/*************************Function Definitions********************************/
 
 unsigned LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index)
 {
@@ -169,8 +171,10 @@ void cache_access(vector<entry> &cache, unsigned long address,
                 cache[index].LRU[i] = 1;
                 cout << "MISS, with index: ";
                 print_bin_index(index,specs->index_size);
-                cout << " WAY: " << i;
-                cout << " LRU: " << cache[index].LRU[i] ;
+                if(specs->asso > 1){
+                    cout << " WAY: " << i;
+                    cout << " LRU: " << cache[index].LRU[i] ;
+                }
                 done = 1;
                 break;
             }
@@ -199,7 +203,7 @@ void cache_access(vector<entry> &cache, unsigned long address,
         else if(!done && specs->asso == 1){
 			old_address = return_word(cache[index].tag[0],specs->tag_shift,
                     index,specs->block_offset);
-			cout <<"miss, replace address: "<< old_address;
+			cout <<"MISS, replace address: "<< old_address;
 			cout << "  with index: ";
 			print_bin_index(index,specs->index_size);
 		    cache[index].tag[0] = tag;
@@ -238,6 +242,18 @@ void print_bin_index(unsigned long index, unsigned size)
 	}
 }
 
+void clear_contents(vector<entry> &cache, cache_char* specs, cache_prof *prof_info){
+    for(unsigned i=0; i<specs->no_set; i++) {
+        for(unsigned j=0; j<specs->asso; j++){
+            cache[i].valid[j] = 0;
+            cache[i].tag[j] = 0; //not necessary
+        }
+    }
+    prof_info->check = 0;
+    prof_info->hit = 0;
+    prof_info->miss = 0;
+    cout << "CLEARED Cache Contents and Statistics" << endl;
+}
 
 void display_contents(vector<entry> &cache, cache_char* specs)
 {
@@ -247,15 +263,21 @@ void display_contents(vector<entry> &cache, cache_char* specs)
 		cout << "Index: ";
 		print_bin_index(i,specs->index_size);
         cout << " Way: " << j;
-		cout << " Valid: " << cache[i].valid[j] << ", Tag: ";
-		for(unsigned k=specs->tag_size-1; k>=0; k--){
-			cout << bits[k] ;
-			if (k==0) break;
-		}
-        if(specs->asso > 1){
-            cout << " LRU: " << cache[i].LRU[j];
+		cout << " Valid: " << cache[i].valid[j];
+        if(cache[i].valid[j]){
+            cout << ", Tag: ";
+            for(unsigned k=specs->tag_size-1; k>=0; k--){
+                cout << bits[k] ;
+                if (k==0) break;
+            }
+            if(specs->asso > 1){
+                cout << " LRU: " << cache[i].LRU[j];
+            }
+            cout << " First Addr in Block: " << return_word(cache[i].tag[j],
+                                       specs->tag_shift,i,specs->block_offset);
         }
 		cout << endl;
+
         }
     }
 }
@@ -274,7 +296,7 @@ void print_results(cache_prof *prof_info)
 {
     if(prof_info->check == 0 ) return ;
 	float hitrate = 0.0;
-	cout << "************* Cache Simulation Results ************"<< endl;
+	cout << "************* Cache Simulation Statistics ************"<< endl;
 	printf ("*             Total ACCESSES : %18d *\n",prof_info->check);
 	printf ("*             Number of HITS : %18d *\n",prof_info->hit);
 	printf ("*             Number of MISSES : %16d *\n",prof_info->miss);
@@ -299,6 +321,7 @@ int main(void)
     int alnum_flag;
     string::size_type i;
     locale loc;
+
 /*********************************** Initialization ***************************/
     prof_info.check = 0;
     prof_info.hit = 0;
@@ -314,10 +337,10 @@ int main(void)
     */
 	cout << "Enter the memory size(in Bytes): ";
 	cin >> memory_size;
+    cout << "Enter the size of the Word(in Bytes): ";
+	cin >> word_size;
 	cout << "Enter the cache size(in Bytes): ";
 	cin >> cache_size;
-	cout << "Enter the size of the Word(in Bytes): ";
-	cin >> word_size;
 	cout << "Enter the block size(in Bytes): ";
 	cin >> block_size;
 	cout << "Enter associativity (1,2,4,8 or 16): ";
@@ -336,61 +359,76 @@ int main(void)
 /***************************Simulation Starting********************************/
 	printf("Insert an address or a valid command\n");
 	printf("For a list of the available commands type \"cmd\"\n");
-	while (cin >> str){
-		if(str.compare("cmd") == 0){
-			printf("\texit:\t\tPrints the results and exits YAC Simulator\n");
-			printf("\tsource:\t\tRead addresses from a file\n");
-			printf("\tdisplay:\tPrints the contents of the Cache\n");
-			continue;
-		}
-		if(str.compare("exit") == 0 ) {
-			print_results(&prof_info);
-			break;
-		}
-		/*Input from file*/
-		if(str.compare("source") == 0 ){
-			cout << "Enter trace filename : ";
-			cin >> filename;
-			if(filename.size() > MAX_FILENAME){
-				cout << "Filename exceeded max size\nExiting..." << endl;
-				exit(-1);
-			}
-			cout << "Filename given: " << filename << endl;
-			infile.open(filename, ios::in);
-			if (!infile){
-				cout << "Error! File not found...\n";
-				exit(-1);
-			}
-			while (getline(infile, str)){
-				address = stoi(str);
-                cache_access(cache, address, &cache_specs,&prof_info);
-			}
-			str.clear();
-			infile.close();
-			continue;
-		}
-        /*Display contents of cache*/
-		if(str.compare("display") == 0 ){
-            display_contents(cache,&cache_specs);
-			continue;
-		}
-		/*Input single address*/
-        alnum_flag = 0;
-        while(i<str.length()){
-            if(isdigit(str[i])==false){
-                alnum_flag = 1;
+	while (true){
+        getline(cin,str);
+        if(str.length() > 0 ){
+            if(str.compare("cmd") == 0){
+                printf("\texit:\t\tPrints the Statistics and exits YAC Simulator\n");
+                printf("\tsource <filename>:\t\tRead addresses from a file\n");
+                printf("\tdisplay:\tPrints the contents of the Cache and the\
+ Statistics\n");
+                printf("\tclear:\tClears the contents of the Cache and resets\
+ statistics\n");
+                continue;
+            }
+            if(str.compare("exit") == 0 ) {
+                print_results(&prof_info);
                 break;
             }
-            i++;
+            /*Display contents of cache*/
+            if(str.compare("display") == 0 ){
+                display_contents(cache,&cache_specs);
+                cout << endl;
+                print_results(&prof_info);
+                continue;
+            }
+            if(str.compare("clear") == 0 ){
+                clear_contents(cache,&cache_specs,&prof_info);
+                continue;
+            }
+            /*Input from file*/
+            if(str.length() > 6 ){
+                string token1 = str.substr(0,6);
+                string token2 = str.substr(7,string::npos);
+                if(token1.compare("source") == 0 ){
+                    filename.assign(token2);
+                    if(filename.size() > MAX_FILENAME){
+                        cout << "Filename exceeded max size\nExiting..." << endl;
+                        exit(-1);
+                    }
+                    cout << "Filename given: " << filename << endl;
+                    infile.open(filename, ios::in);
+                    if (!infile){
+                        cout << "Error! File not found...\n";
+                        exit(-1);
+                    }
+                    while (getline(infile, str)){
+                        address = stoi(str);
+                        cache_access(cache, address, &cache_specs,&prof_info);
+                    }
+                    infile.close();
+                    continue;
+                }
+            }
+            /*Input single address*/
+            alnum_flag = 0;
+            while(i<str.length()){
+                if(isdigit(str[i])==false){
+                    alnum_flag = 1;
+                    break;
+                }
+                i++;
+            }
+            i = 0;
+            if(alnum_flag == 1){
+                cout << "Wrong command or Address not alphanumeric"<< endl;
+                printf("For a list of the available commands type \"cmd\"\n");
+                str.clear();
+                continue;
+            }
+            address = stoi(str);
+            cache_access(cache, address, &cache_specs,&prof_info);
         }
-        i = 0;
-        if(alnum_flag == 1){
-            cout << "Wrong command or Address not alphanumeric"<< endl;
-            printf("For a list of the available commands type \"cmd\"\n");
-            continue;
-        }
-		address = stoi(str);
-        cache_access(cache, address, &cache_specs,&prof_info);
 	}
 	return 0;
 }
