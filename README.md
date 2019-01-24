@@ -1,5 +1,11 @@
 # Yet Another Cache Simulator
 
+## YAC Sim - Yet Another Cache Simulator, created for the purposes of Computer Organization (CS-225) course CSD, University of Crete, creates a cache with user defined attributes and simulates accesses from user input
+### Copyright (C) 2018  Ioannis Vardas - vardas@ics.forth.gr
+
+## How To Use YAC Simulator
+First run the simulator executable
+1. Insert the memory characteristics, Memory Size and Word Size in Bytes.
   
 ## To this point:
 1. Direct mapped cache no associativity levels

@@ -1,6 +1,6 @@
 /*****************************************************************************\
-* YAC Sim - Yet Another Cache Simulator, created for the purposes of CS-225 
-* course CSD, University of Crete, creates a cache with user defined attributes 
+* YAC Sim - Yet Another Cache Simulator, created for the purposes of CS-225
+* course CSD, University of Crete, creates a cache with user defined attributes
 * and simulates accesses from user input
 * Copyright (C) 2018  Ioannis Vardas - vardas@ics.forth.gr
 *
@@ -15,7 +15,7 @@
 * GNU General Public License for more details.
 *
 * You should have received a copy of the GNU General Public License
-* along with this program.  If not, see <https://www.gnu.org/licenses/>.     
+* along with this program.  If not, see <https://www.gnu.org/licenses/>
 *******************************************************************************/
 
 #include <iostream>
@@ -209,8 +209,8 @@ void cache_access(vector<entry> &cache, unsigned long address,
 }
 
 
-unsigned powerof2(bitset<32> bitset1) 
-{	
+unsigned powerof2(bitset<32> bitset1)
+{
     unsigned i;
 	for (i = 0; i < bitset1.size(); i++)
 	{
@@ -252,15 +252,17 @@ void display_contents(vector<entry> &cache, cache_char* specs)
 			cout << bits[k] ;
 			if (k==0) break;
 		}
-        cout << " LRU: " << cache[i].LRU[j];
+        if(specs->asso > 1){
+            cout << " LRU: " << cache[i].LRU[j];
+        }
 		cout << endl;
-	}
+        }
     }
 }
 
-unsigned long return_word(unsigned long tag, unsigned tag_shift, 
+unsigned long return_word(unsigned long tag, unsigned tag_shift,
         unsigned long index, unsigned block_offset)
-{	
+{
     unsigned long retval;
 	retval = tag << tag_shift;
 	index = index << block_offset;
@@ -302,18 +304,21 @@ int main(void)
     prof_info.hit = 0;
     prof_info.miss = 0;
     i = 0;
-    /*Print info about GPL licence*/
-    cout << "\nYAC Simulator, Copyright (C) 2018 Ioannis Vardas ";
-    cout << "vardas@ics.forth.gr\nThis program is under "; 
+
+    cout << "\nYAC Simulator, Copyright (C) 2018 Ioannis Vardas\n";
+    cout << "Contact vardas@ics.forth.gr\n\n";
+    /*Print info about GPL licence*
+    cout << "This program is under ";
     cout << "the terms of the GNU General Public License v3\nFor more info see";
     cout << ": <https://www.gnu.org/licenses/>" << endl << endl;
-	cout << "Enter the memory size: ";
+    */
+	cout << "Enter the memory size(in Bytes): ";
 	cin >> memory_size;
-	cout << "Enter the cache size: ";
+	cout << "Enter the cache size(in Bytes): ";
 	cin >> cache_size;
-	cout << "Enter the size of the Word: ";
+	cout << "Enter the size of the Word(in Bytes): ";
 	cin >> word_size;
-	cout << "Enter the block size: ";
+	cout << "Enter the block size(in Bytes): ";
 	cin >> block_size;
 	cout << "Enter associativity (1,2,4,8 or 16): ";
 	cin >> asso;
@@ -333,7 +338,7 @@ int main(void)
 	printf("For a list of the available commands type \"cmd\"\n");
 	while (cin >> str){
 		if(str.compare("cmd") == 0){
-			printf("\texit:\t\tPrints the results and exits YAC SIM\n");
+			printf("\texit:\t\tPrints the results and exits YAC Simulator\n");
 			printf("\tsource:\t\tRead addresses from a file\n");
 			printf("\tdisplay:\tPrints the contents of the Cache\n");
 			continue;
@@ -375,12 +380,13 @@ int main(void)
             if(isdigit(str[i])==false){
                 alnum_flag = 1;
                 break;
-            } 
+            }
             i++;
         }
         i = 0;
         if(alnum_flag == 1){
-            cout << "Address not alphanumeric"<< endl;
+            cout << "Wrong command or Address not alphanumeric"<< endl;
+            printf("For a list of the available commands type \"cmd\"\n");
             continue;
         }
 		address = stoi(str);
