@@ -3,7 +3,7 @@
 Created for the purposes of Computer Organization (CS-225) course CSD, University of Crete.
 
 ## How To Use YAC Simulator
-After runing the simulator executable  
+After running the simulator executable  
 
 - Insert the memory characteristics: 
   1. **Memory Size** in **Bytes** 
@@ -28,4 +28,5 @@ Now the user can insert different addresses or some commands for the simulation.
 #### Copyright (C) 2018  Ioannis Vardas - vardas@ics.forth.gr
 
 
-
+### TODO:
+Fix LRU prints if HIT

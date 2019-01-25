@@ -26,6 +26,7 @@
 #include <stdint.h>
 #include <bitset>
 #include <locale>
+#include <limits>
 #define MAX_FILENAME 256
 using namespace std;
 
@@ -136,7 +137,7 @@ void cache_access(vector<entry> &cache, unsigned long address,
        cache_char* specs, cache_prof* prof_info)
 {
     unsigned long index, tag, old_address;
-    unsigned short done, min_lru;
+    unsigned short done, min_lru, max_lru;
     unsigned way;
 	cout << "ADDR: " << address << " ";
 	index = address & specs->tmp;
@@ -157,6 +158,7 @@ void cache_access(vector<entry> &cache, unsigned long address,
 		    print_bin_index(index,specs->index_size);
             if(specs->asso > 1) {
                 cout << " WAY: " << i;
+                cout << " LRU: " << cache[index].LRU[i] ;
             }
             done = 1;
 	    }
@@ -182,11 +184,15 @@ void cache_access(vector<entry> &cache, unsigned long address,
         if(!done && specs->asso > 1){
             /*LRU replacement algorithm*/
             min_lru = cache[index].LRU[0];
+            max_lru = cache[index].LRU[0];
             for(unsigned i=0; i<specs->asso; i++){
                 if(cache[index].LRU[i] < min_lru ){
                     min_lru = cache[index].LRU[i];
                     way = i;
-                    cout << " MIN_LRU =  " << min_lru << " ";
+                    //cout << " MIN_LRU =  " << min_lru << " ";
+                }
+                if(cache[index].LRU[i] > max_lru){
+                    max_lru = cache[index].LRU[i];
                 }
             }
             old_address=return_word(cache[index].tag[way],specs->tag_shift,
@@ -197,7 +203,9 @@ void cache_access(vector<entry> &cache, unsigned long address,
             cout << " WAY: " << way;
             cout << " LRU: " << cache[index].LRU[way] ;
             cache[index].tag[way] = tag;
-            cache[index].LRU[way] = 1;
+//            cache[index].LRU[way] = 1;
+            cache[index].LRU[way] = max_lru+1;
+
         }
         /*Directed mapped cache access no need for LRU*/
         else if(!done && specs->asso == 1){
@@ -335,13 +343,34 @@ int main(void)
     cout << "the terms of the GNU General Public License v3\nFor more info see";
     cout << ": <https://www.gnu.org/licenses/>" << endl << endl;
     */
-	cout << "Enter the memory size(in Bytes): ";
+get_memsize:
+	cout << "Enter the Main Memory size(in Bytes): ";
 	cin >> memory_size;
-    cout << "Enter the size of the Word(in Bytes): ";
+    if(cin.fail()){
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Bad Input: Memory size is not a number" << endl;
+        goto get_memsize;
+    }
+    cout << "Enter the size of the Word (in Bytes): ";
 	cin >> word_size;
-	cout << "Enter the cache size(in Bytes): ";
+    if(cin.fail()){
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Bad Input: Word size is not a number" << endl;
+        goto get_memsize;
+    }
+
+get_csize:
+	cout << "Enter the Cache size (in Bytes): ";
 	cin >> cache_size;
-	cout << "Enter the block size(in Bytes): ";
+    if(cache_size >= memory_size){
+        cout << "Bad Input: Cache size should not exceed Main Memory size"<<endl;
+        cin.clear();
+        goto get_csize;
+    }
+
+	cout << "Enter the Cache Block(Line) size (in Bytes): ";
 	cin >> block_size;
 	cout << "Enter associativity (1,2,4,8 or 16): ";
 	cin >> asso;
@@ -357,17 +386,20 @@ int main(void)
     print_specs(&cache_specs);
 
 /***************************Simulation Starting********************************/
-	printf("Insert an address or a valid command\n");
-	printf("For a list of the available commands type \"cmd\"\n");
+    cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+/*
+    cout << "Insert an address or a valid command"<<endl;
+    cout << "For a list of the available commands type \"cmd\""<<endl;
+*/
 	while (true){
         getline(cin,str);
         if(str.length() > 0 ){
             if(str.compare("cmd") == 0){
-                printf("\texit:\t\tPrints the Statistics and exits YAC Simulator\n");
-                printf("\tsource <filename>:\t\tRead addresses from a file\n");
-                printf("\tdisplay:\tPrints the contents of the Cache and the\
+                printf("\texit:\t\t\tPrints the Statistics and exits YAC Simulator\n");
+                printf("\tsource <filename>:\tRead addresses from a file\n");
+                printf("\tdisplay:\t\tPrints the contents of the Cache and the\
  Statistics\n");
-                printf("\tclear:\tClears the contents of the Cache and resets\
+                printf("\tclear:\t\t\tClears the contents of the Cache and resets\
  statistics\n");
                 continue;
             }
@@ -380,10 +412,17 @@ int main(void)
                 display_contents(cache,&cache_specs);
                 cout << endl;
                 print_results(&prof_info);
+                cout << endl;
+                cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+//                cout << "For a list of the available commands type \"cmd\""<<endl;
                 continue;
             }
             if(str.compare("clear") == 0 ){
                 clear_contents(cache,&cache_specs,&prof_info);
+                cout << endl;
+                cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+                // cout << "Insert an address or a valid command"<<endl;
+                // cout << "For a list of the available commands type \"cmd\""<<endl;
                 continue;
             }
             /*Input from file*/
@@ -407,12 +446,16 @@ int main(void)
                         cache_access(cache, address, &cache_specs,&prof_info);
                     }
                     infile.close();
+                    cout << endl;
+                    cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+                    // cout << "Insert an address or a valid command"<<endl;
+                    // cout << "For a list of the available commands type \"cmd\""<<endl;
                     continue;
                 }
             }
             /*Input single address*/
             alnum_flag = 0;
-            while(i<str.length()){
+            while(i<str.length()) {
                 if(isdigit(str[i])==false){
                     alnum_flag = 1;
                     break;
@@ -422,12 +465,19 @@ int main(void)
             i = 0;
             if(alnum_flag == 1){
                 cout << "Wrong command or Address not alphanumeric"<< endl;
-                printf("For a list of the available commands type \"cmd\"\n");
+                cout << endl;
+                cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+                // cout << "Insert an address or a valid command"<<endl;
+                // cout << "For a list of the available commands type \"cmd\""<<endl;
                 str.clear();
                 continue;
             }
             address = stoi(str);
             cache_access(cache, address, &cache_specs,&prof_info);
+            cout << endl;
+            cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+            // cout << "Insert an address or a valid command"<<endl;
+            // cout << "For a list of the available commands type \"cmd\""<<endl;
         }
 	}
 	return 0;
