@@ -340,7 +340,6 @@ int main(void)
     prof_info.hit = 0;
     prof_info.miss = 0;
     i = 0;
-
     cout << "\nYAC Simulator, Copyright (C) 2018 Ioannis Vardas\n";
     cout << "Contact vardas@ics.forth.gr\n\n";
     /*Print info about GPL licence*
@@ -426,14 +425,9 @@ get_asso:
 	for(unsigned i=0; i<cache_specs.no_set; i++){
 		cache.push_back(init_entry);
 	}
-    print_specs(&cache_specs);
 
 /***************************Simulation Starting********************************/
     cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
-/*
-    cout << "Insert an address or a valid command"<<endl;
-    cout << "For a list of the available commands type \"cmd\""<<endl;
-*/
 	while (true){
         getline(cin,str);
         if(str.length() > 0 ){
@@ -457,15 +451,12 @@ get_asso:
                 print_results(&prof_info);
                 cout << endl;
                 cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
-//                cout << "For a list of the available commands type \"cmd\""<<endl;
                 continue;
             }
             if(str.compare("clear") == 0 ){
                 clear_contents(cache,&cache_specs,&prof_info);
                 cout << endl;
                 cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
-                // cout << "Insert an address or a valid command"<<endl;
-                // cout << "For a list of the available commands type \"cmd\""<<endl;
                 continue;
             }
             /*Input from file*/
@@ -491,8 +482,6 @@ get_asso:
                     infile.close();
                     cout << endl;
                     cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
-                    // cout << "Insert an address or a valid command"<<endl;
-                    // cout << "For a list of the available commands type \"cmd\""<<endl;
                     continue;
                 }
             }
@@ -510,8 +499,6 @@ get_asso:
                 cout << "Wrong command or Address not alphanumeric"<< endl;
                 cout << endl;
                 cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
-                // cout << "Insert an address or a valid command"<<endl;
-                // cout << "For a list of the available commands type \"cmd\""<<endl;
                 str.clear();
                 continue;
             }
@@ -519,8 +506,6 @@ get_asso:
             cache_access(cache, address, &cache_specs,&prof_info);
             cout << endl;
             cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
-            // cout << "Insert an address or a valid command"<<endl;
-            // cout << "For a list of the available commands type \"cmd\""<<endl;
         }
 	}
 	return 0;
