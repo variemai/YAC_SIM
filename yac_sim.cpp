@@ -77,6 +77,7 @@ void clear_contents(vector<entry> &cache, cache_char*);
 
 /*************************Function Definitions********************************/
 
+/*Not used as function call*/
 unsigned LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index)
 {
     unsigned short min_lru;
@@ -145,7 +146,6 @@ void cache_access(vector<entry> &cache, unsigned long address,
 	index = index >> specs->block_offset;
 	tag = address & specs->tmp_tag;
 	tag = tag >> specs->tag_shift;
-    /*cout << "TAG: " << tag <<endl;*/
 	prof_info->check++;
     done = 0;
     min_lru = 0;
@@ -190,7 +190,6 @@ void cache_access(vector<entry> &cache, unsigned long address,
                 if(cache[index].LRU[i] < min_lru ){
                     min_lru = cache[index].LRU[i];
                     way = i;
-                    //cout << " MIN_LRU =  " << min_lru << " ";
                 }
                 if(cache[index].LRU[i] > max_lru){
                     max_lru = cache[index].LRU[i];
@@ -221,7 +220,7 @@ void cache_access(vector<entry> &cache, unsigned long address,
 	cout << endl;
 }
 
-
+/*Returns the index of the first bit that is equal to 1 in the bitset*/
 unsigned powerof2(bitset<32> bitset1)
 {
     unsigned i;
@@ -232,6 +231,7 @@ unsigned powerof2(bitset<32> bitset1)
 	return i;
 }
 
+/*Returns the exponent of a number that is power of 2*/
 unsigned pow2(unsigned num)
 {
     unsigned i = 0;
