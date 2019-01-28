@@ -27,6 +27,7 @@
 #include <bitset>
 #include <locale>
 #include <limits>
+#include <cmath>
 #define MAX_FILENAME 256
 using namespace std;
 
@@ -304,7 +305,7 @@ void print_results(cache_prof *prof_info)
 {
     if(prof_info->check == 0 ) return ;
 	float hitrate = 0.0;
-	cout << "************* Cache Simulation Statistics ************"<< endl;
+	cout << "************* Cache Simulation Statistics *********"<< endl;
 	printf ("*             Total ACCESSES : %18d *\n",prof_info->check);
 	printf ("*             Number of HITS : %18d *\n",prof_info->hit);
 	printf ("*             Number of MISSES : %16d *\n",prof_info->miss);
@@ -313,6 +314,10 @@ void print_results(cache_prof *prof_info)
 	cout << "***************************************************"<< endl;
 }
 
+bool isPowerOfTwo(int n)
+{
+    return (ceil(log2(n)) == floor(log2(n)));
+}
 
 int main(void)
 {
@@ -344,7 +349,7 @@ int main(void)
     cout << ": <https://www.gnu.org/licenses/>" << endl << endl;
     */
 get_memsize:
-	cout << "Enter the Main Memory size(in Bytes): ";
+	cout << "Enter the Main Memory size in Bytes: ";
 	cin >> memory_size;
     if(cin.fail()){
         cin.clear();
@@ -352,28 +357,66 @@ get_memsize:
         cout << "Bad Input: Memory size is not a number" << endl;
         goto get_memsize;
     }
-    cout << "Enter the size of the Word (in Bytes): ";
+
+get_wordsize:
+    cout << "Enter the size of the Word in Bytes: ";
 	cin >> word_size;
     if(cin.fail()){
         cin.clear();
         cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         cout << "Bad Input: Word size is not a number" << endl;
-        goto get_memsize;
+        goto get_wordsize;
     }
 
-get_csize:
-	cout << "Enter the Cache size (in Bytes): ";
+get_cachesize:
+	cout << "Enter the Cache size in Bytes: ";
 	cin >> cache_size;
+    if(cin.fail()){
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Bad Input: Cache size is not a number" << endl;
+        goto get_cachesize;
+    }
     if(cache_size >= memory_size){
         cout << "Bad Input: Cache size should not exceed Main Memory size"<<endl;
         cin.clear();
-        goto get_csize;
+        goto get_cachesize;
     }
 
-	cout << "Enter the Cache Block(Line) size (in Bytes): ";
+get_blocksize:
+	cout << "Enter the Cache Block(Line) size in Bytes: ";
 	cin >> block_size;
+    if(cin.fail()){
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Bad Input: Block size is not a number" << endl;
+        goto get_blocksize;
+    }
+    if(block_size < word_size){
+        cout << "Bad Input: Block size should not be less than Word size"<<endl;
+        cin.clear();
+        goto get_blocksize;
+    }
+
+get_asso:
 	cout << "Enter associativity (1,2,4,8 or 16): ";
 	cin >> asso;
+    if(cin.fail()){
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Bad Input: Associativity is not a number" << endl;
+        goto get_asso;
+    }
+    if( asso < 1 || asso > 16 || !isPowerOfTwo(asso) ){
+        cout << "Bad Input: Associativity should be either 1,2,4,8 or 16"<<endl;
+        cin.clear();
+        goto get_asso;
+    }
+    if( asso > cache_size/block_size ){
+        cout << "Bad Input: Associativity level is too high, try a lower value"<<endl;
+        cin.clear();
+        goto get_asso;
+    }
     set_cache_specs(cache_size,block_size,memory_size,asso, &cache_specs);
     for(unsigned i=0; i<asso; i++){
         init_entry.tag[i] = 0;
@@ -435,7 +478,7 @@ get_csize:
                         cout << "Filename exceeded max size\nExiting..." << endl;
                         exit(-1);
                     }
-                    cout << "Filename given: " << filename << endl;
+                    cout << "Filename given: " << filename << endl << endl;
                     infile.open(filename, ios::in);
                     if (!infile){
                         cout << "Error! File not found...\n";

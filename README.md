@@ -7,7 +7,7 @@ After running the simulator executable
 
 - Insert the memory characteristics: 
   1. **Memory Size** in **Bytes** 
-  2. **Word Size** in **Bytes**  
+  2. **Word Size** in **Bytes, should be less than Memory Size**  
   
 - Insert the cache characteristics:
    1. **Cache Size** in **Bytes**
@@ -26,7 +26,3 @@ Now the user can insert different addresses or some commands for the simulation.
 - **Typing a valid address in decimal** e.g. "100" YAC Sim will simulate the access of that address
 
 #### Copyright (C) 2018  Ioannis Vardas - vardas@ics.forth.gr
-
-
-### TODO:
-Fix LRU prints if HIT
