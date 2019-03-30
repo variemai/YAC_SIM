@@ -12,11 +12,11 @@ to input them after running the simulator.
 
 ### After running the simulator executable:  
 
-- Insert the memory parameters: 
+- Insert the **memory** parameters: 
   1. **Memory Size** in **Bytes** 
   2. **Word Size** in **Bytes, should be less than Memory Size**  
   
-- Insert the cache parameters:
+- Insert the **cache** parameters:
    1. **Cache Size** in **Bytes**
    3. **Block** (Line) **Size** in **Bytes**
    2. **Associativity**,1 is direct mapped up to 16 associativity levels
