@@ -28,10 +28,11 @@
 #include <locale>
 #include <limits>
 #include <cmath>
+#include <string.h>
 #define MAX_FILENAME 256
 using namespace std;
 
-unsigned word_size;
+unsigned long word_size;
 
 typedef struct profile_info{
 	int check;
@@ -55,27 +56,97 @@ typedef struct characteristics_of_cache{
     unsigned tag_size; /*in bits*/
     unsigned index_size;
     unsigned no_set;
-    unsigned asso = 1;
+    unsigned long asso = 1;
 }cache_char;
 
 /*************************Function Declarations*******************************/
-
+bool isPowerOfTwo(unsigned long);
 unsigned LRU_policy(vector<entry> &cache,cache_char*);
-
 void set_cache_specs(unsigned long,unsigned long,unsigned long,unsigned,
         cache_char*);
-
 void print_bin_index(unsigned long, unsigned);
-
 unsigned long return_word(unsigned long , unsigned, unsigned long, unsigned );
-
 unsigned powerof2(bitset<32>);
-
-unsigned pow2(unsigned );
-
+unsigned pow2(unsigned long);
 void clear_contents(vector<entry> &cache, cache_char*);
-
+unsigned long get_sizeof_memory(void);
 /*************************Function Definitions********************************/
+
+bool isPowerOfTwo(unsigned long n)
+{
+    return (ceil(log2(n)) == floor(log2(n)));
+}
+
+unsigned long get_sizeof_memory(void)
+{
+    unsigned long memory_size;
+    cout << "Enter the Main Memory size in Bytes: ";
+    cin >> memory_size;
+    if(cin.fail()){
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Bad Input: Memory size is not a number" << endl;
+        return 0;
+    }
+    return (isPowerOfTwo(memory_size) == 0) ? 0 : memory_size;
+}
+
+unsigned long get_sizeof_word(void)
+{
+    unsigned long sizeof_word;
+    cout << "Enter the size of the Word in Bytes: ";
+    cin >> sizeof_word;
+    if(cin.fail()){
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Bad Input: Word size is not a number" << endl;
+        return 0;
+    }
+    return (isPowerOfTwo(sizeof_word) == 0 ) ? 0 : sizeof_word;
+}
+
+unsigned long  get_sizeof_cache(void){
+    unsigned long sizeof_cache;
+    cout << "Enter the Cache size in Bytes: ";
+    cin >> sizeof_cache;
+    if(cin.fail()){
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Bad Input: Cache size is not a number" << endl;
+        return 0;
+    }
+    return (isPowerOfTwo(sizeof_cache) == 0 ) ? 0 : sizeof_cache;
+}
+
+unsigned long get_sizeof_cacheline(void)
+{
+    unsigned long block_size;
+    cout << "Enter the Cache Block(Line) size in Bytes: ";
+    cin >> block_size;
+    if(cin.fail()){
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Bad Input: Block size is not a number" << endl;
+    }
+    return (isPowerOfTwo(block_size) == 0 ) ? 0 : block_size;
+
+}
+
+unsigned long get_associativity(void)
+{
+    unsigned long asso;
+    cout << "Enter associativity (1,2,4,8 or 16): ";
+    cin >> asso;
+    if(cin.fail()){
+        cin.clear();
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        cout << "Bad Input: Associativity is not a number" << endl;
+        return 0;
+    }
+    if(asso == 1) return asso;
+    return (isPowerOfTwo(asso) == 0 ) ? 0 : asso;
+}
+
 
 /*Not used as function call*/
 unsigned LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index)
@@ -94,8 +165,8 @@ unsigned LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index)
     return way;
 }
 
-void set_cache_specs(unsigned long cache_size, unsigned long block_size, 
-        unsigned long memory_size,unsigned asso, cache_char* characteristics)
+void set_cache_specs(unsigned long cache_size, unsigned long block_size,
+        unsigned long memory_size,unsigned long asso, cache_char* characteristics)
 {
     unsigned i, j;
     unsigned long no_blocks;
@@ -135,7 +206,7 @@ void print_specs(cache_char* specs)
     cout << "Number of Sets: "<< specs->no_set << endl;
 }
 
-void cache_access(vector<entry> &cache, unsigned long address, 
+void cache_access(vector<entry> &cache, unsigned long address,
        cache_char* specs, cache_prof* prof_info)
 {
     unsigned long index, tag, old_address;
@@ -150,7 +221,7 @@ void cache_access(vector<entry> &cache, unsigned long address,
     done = 0;
     min_lru = 0;
     way = 0;
-    for(unsigned i=0; i<specs->asso; i++){
+    for(unsigned long i=0; i<specs->asso; i++){
 	    if (cache[index].valid[i] == 1 && cache[index].tag[i] == tag) {
 		    prof_info->hit++;
             /*Update the LRU info*/
@@ -167,7 +238,7 @@ void cache_access(vector<entry> &cache, unsigned long address,
     if(!done){
         prof_info->miss++;
         /*Miss-first search for an invalid position in the way*/
-        for(unsigned i=0; i<specs->asso; i++){
+        for(unsigned long i=0; i<specs->asso; i++){
             if(cache[index].valid[i] == 0){
                 cache[index].tag[i] = tag;
                 cache[index].valid[i] = 1;
@@ -186,7 +257,7 @@ void cache_access(vector<entry> &cache, unsigned long address,
             /*LRU replacement algorithm*/
             min_lru = cache[index].LRU[0];
             max_lru = cache[index].LRU[0];
-            for(unsigned i=0; i<specs->asso; i++){
+            for(unsigned long i=0; i<specs->asso; i++){
                 if(cache[index].LRU[i] < min_lru ){
                     min_lru = cache[index].LRU[i];
                     way = i;
@@ -232,7 +303,7 @@ unsigned powerof2(bitset<32> bitset1)
 }
 
 /*Returns the exponent of a number that is power of 2*/
-unsigned pow2(unsigned num)
+unsigned pow2(unsigned long num)
 {
     unsigned i = 0;
 	while(num != 0 && num!=1 ){
@@ -253,7 +324,7 @@ void print_bin_index(unsigned long index, unsigned size)
 
 void clear_contents(vector<entry> &cache, cache_char* specs, cache_prof *prof_info){
     for(unsigned i=0; i<specs->no_set; i++) {
-        for(unsigned j=0; j<specs->asso; j++){
+        for(unsigned long j=0; j<specs->asso; j++){
             cache[i].valid[j] = 0;
             cache[i].tag[j] = 0; //not necessary
         }
@@ -267,7 +338,7 @@ void clear_contents(vector<entry> &cache, cache_char* specs, cache_prof *prof_in
 void display_contents(vector<entry> &cache, cache_char* specs)
 {
     for(unsigned i=0; i<specs->no_set; i++) {
-        for(unsigned j=0; j<specs->asso; j++){
+        for(unsigned long j=0; j<specs->asso; j++){
 		bitset<32> bits = {cache[i].tag[j]};
 		cout << "Index: ";
 		print_bin_index(i,specs->index_size);
@@ -314,19 +385,16 @@ void print_results(cache_prof *prof_info)
 	cout << "***************************************************"<< endl;
 }
 
-bool isPowerOfTwo(int n)
-{
-    return (ceil(log2(n)) == floor(log2(n)));
-}
 
-int main(void)
+
+int main(int argc, char* argv[])
 {
 /******************************** Variables declarations **********************/
-	string filename;
-    unsigned asso;
+	string filename,fname;
+    unsigned long asso, val;
 	unsigned long cache_size, block_size, memory_size, address;
 	string str;
-	ifstream infile;
+	ifstream infile,file;
 	vector<entry> cache;
 	entry init_entry;
     cache_prof prof_info;
@@ -334,12 +402,19 @@ int main(void)
     int alnum_flag;
     string::size_type i;
     locale loc;
+    size_t found;
+    char *token,*endptr;
 
 /*********************************** Initialization ***************************/
     prof_info.check = 0;
     prof_info.hit = 0;
     prof_info.miss = 0;
     i = 0;
+    asso = 0;
+    cache_size = 0;
+    block_size = 0;
+    memory_size = 0;
+    word_size = 0 ;
     cout << "\nYAC Simulator, Copyright (C) 2018 Ioannis Vardas\n";
     cout << "Contact vardas@ics.forth.gr\n\n";
     /*Print info about GPL licence*
@@ -347,82 +422,269 @@ int main(void)
     cout << "the terms of the GNU General Public License v3\nFor more info see";
     cout << ": <https://www.gnu.org/licenses/>" << endl << endl;
     */
-get_memsize:
-	cout << "Enter the Main Memory size in Bytes: ";
-	cin >> memory_size;
-    if(cin.fail()){
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        cout << "Bad Input: Memory size is not a number" << endl;
-        goto get_memsize;
-    }
+    if( argc < 2 ){
 
-get_wordsize:
-    cout << "Enter the size of the Word in Bytes: ";
-	cin >> word_size;
-    if(cin.fail()){
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        cout << "Bad Input: Word size is not a number" << endl;
-        goto get_wordsize;
-    }
+        while( ( memory_size = get_sizeof_memory() ) == 0 ){
+            cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+        }
 
-get_cachesize:
-	cout << "Enter the Cache size in Bytes: ";
-	cin >> cache_size;
-    if(cin.fail()){
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        cout << "Bad Input: Cache size is not a number" << endl;
-        goto get_cachesize;
-    }
-    if(cache_size >= memory_size){
-        cout << "Bad Input: Cache size should not exceed Main Memory size"<<endl;
-        cin.clear();
-        goto get_cachesize;
-    }
+        while( ( word_size = get_sizeof_word() ) == 0 ){
+            cout << "Bad Input: Word Size must be power of 2!\n" << endl;;
+        }
 
-get_blocksize:
-	cout << "Enter the Cache Block(Line) size in Bytes: ";
-	cin >> block_size;
-    if(cin.fail()){
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        cout << "Bad Input: Block size is not a number" << endl;
-        goto get_blocksize;
-    }
-    if(block_size < word_size){
-        cout << "Bad Input: Block size should not be less than Word size"<<endl;
-        cin.clear();
-        goto get_blocksize;
-    }
+        while( ( cache_size = get_sizeof_cache() ) == 0  ){
+            cout << "Bad Input: Cache Size must be power of 2!\n" << endl;;
+        }
 
-get_asso:
-	cout << "Enter associativity (1,2,4,8 or 16): ";
-	cin >> asso;
-    if(cin.fail()){
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        cout << "Bad Input: Associativity is not a number" << endl;
-        goto get_asso;
+        while( ( block_size = get_sizeof_cacheline() ) == 0 ){
+            cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;;
+        }
+
+        while( ( asso = get_associativity() ) == 0 ){
+            cout << "Bad Input: Associativity should be either 1,2,4,8 or 16"<<endl;
+        }
+
     }
-    if( asso < 1 || asso > 16 || !isPowerOfTwo(asso) ){
-        cout << "Bad Input: Associativity should be either 1,2,4,8 or 16"<<endl;
-        cin.clear();
-        goto get_asso;
+    else{
+        cout << "Filename given: " << argv[1] << endl;
+        infile.open(argv[1], ios::in);
+        if (!infile){
+            cout << "Error! File not found...\n";
+            exit(-1);
+        }
+        while (std::getline(infile, str)){
+            found = str.find("memsize");
+            if ( found != string::npos ) {
+                char *line = &(str[0]);
+                cout << line << endl;
+                token = strtok(line," ");
+                if(token != NULL) {
+                    token = strtok(NULL," ");
+                    if(token == NULL ){
+                        cout << "Bad Input: memsize found but no digits were found!" << endl;
+                        while( ( val = get_sizeof_memory() ) == 0 ){
+                            cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+                        }
+                        memory_size = val;
+                        continue;
+                    }
+                    val = strtoul(token,&endptr,10);
+                    if ((errno == ERANGE && (val == ULONG_MAX) )
+                        || (errno != 0 && val == 0))  {
+                        perror("memsize: bad input - strtol\n");
+                        while( ( val = get_sizeof_memory() ) == 0 ){
+                            cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+                        }
+                    }
+                    if (endptr == token) {
+                        fprintf(stderr, "Bad Input: memsize found but no digits were found!\n");
+                         while( ( val = get_sizeof_memory() ) == 0 ){
+                            cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+                        }
+                    }
+                }
+                else{
+                    cout << "Bad Input: memsize found but no digits were found!" << endl;
+                    while( ( val = get_sizeof_memory() ) == 0 ){
+                        cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+                    }
+                }
+                memory_size = val;
+                continue;
+            }
+            found = str.find("wordsize");
+            if ( found != string::npos ) {
+                char *line = &(str[0]);
+                cout << line << endl;
+                token = strtok(line," ");
+                if(token != NULL) {
+                    token = strtok(NULL," ");
+                    if(token == NULL ) {
+                        cout << "Bad Input: wordsize found but no digits were found!" << endl;
+                        while( ( val = get_sizeof_word() ) == 0 ){
+                            cout << "Bad Input: Word Size must be power of 2!\n" << endl;
+                        }
+                        word_size = val;
+                        continue;
+                    }
+                    val = strtoul(token,&endptr,10);
+                    if ((errno == ERANGE && (val == ULONG_MAX) )
+                        || (errno != 0 && val == 0))  {
+                        perror("wordsize: bad input - strtol\n");
+                        while( ( val = get_sizeof_word() ) == 0 ){
+                            cout << "Bad Input: Word Size must be power of 2!\n" << endl;
+                        }
+                    }
+                    if (endptr == token) {
+                        fprintf(stderr, "Bad Input: wordsize found but no digits were found!\n");
+                        while( ( val = get_sizeof_word() ) == 0 ){
+                            cout << "Bad Input: Word Size must be power of 2!\n" << endl;
+                        }
+                    }
+                }
+                else{
+                    cout << "Bad Input: wordsize found but no digits were found!" << endl;
+                    while( ( val = get_sizeof_word() ) == 0 ){
+                        cout << "Bad Input: Word Size must be power of 2!\n" << endl;
+                    }
+                }
+                word_size = val;
+                continue;
+            }
+            found = str.find("cachesize");
+            if ( found != string::npos ) {
+                char *line = &(str[0]);
+                cout << line << endl;
+                token = strtok(line," ");
+                if(token != NULL) {
+                    token = strtok(NULL," ");
+                    if(token == NULL ){
+                        cout << "Bad Input: cachesize found but no digits were found!" << endl;
+                        while( ( val = get_sizeof_cache()) == 0 ){
+                            cout << "Bad Input: Cache Size must be power of 2!\n" << endl;
+                        }
+                        cache_size = val;
+                        continue;
+                    }
+                    val = strtoul(token,&endptr,10);
+                    if ((errno == ERANGE && (val == ULONG_MAX) )
+                        || (errno != 0 && val == 0))  {
+                        perror("cachesize: bad input - strtol\n");
+                        while( ( val = get_sizeof_cache() ) == 0 ){
+                            cout << "Bad Input: Cache Size must be power of 2!\n" << endl;
+                        }
+                    }
+                    if (endptr == token) {
+                        fprintf(stderr, "Bad Input: cachesize found but no digits were found!\n");
+                        while( ( val = get_sizeof_cache() ) == 0  ){
+                            cout << "Bad Input: Cache Size must be power of 2!\n" << endl;
+                        }
+                    }
+                }
+                else{
+                    cout << "Bad Input: cachesize found but no digits were found!" << endl;
+                    while( ( val = get_sizeof_cache() ) == 0 ){
+                        cout << "Bad Input: Cache Size must be power of 2!\n" << endl;
+                    }
+                }
+                cache_size = val;
+                continue;
+            }
+            found = str.find("linesize");
+            if ( found != string::npos ) {
+                char *line = &(str[0]);
+                cout << line << endl;
+                token = strtok(line," ");
+                if(token != NULL) {
+                    token = strtok(NULL," ");
+                    if(token == NULL ){
+                        cout << "Bad Input: linesize found but no digits were found!" << endl;
+                        while( ( val = get_sizeof_cacheline() ) == 0 ){
+                            cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;
+                        }
+                        block_size = val;
+                        continue;
+                    }
+                    val = strtoul(token,&endptr,10);
+                    if ((errno == ERANGE && (val == ULONG_MAX) )
+                        || (errno != 0 && val == 0))  {
+                        perror("linesize: bad input - strtol\n");
+                        while( ( val = get_sizeof_cacheline() ) == 0 ){
+                                cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;
+                        }
+                    }
+                    if (endptr == token) {
+                        fprintf(stderr, "Bad Input: linesize found but no digits were found!\n");
+                        while( ( val = get_sizeof_cacheline() ) == 0 ){
+                            cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;
+                        }
+                    }
+                }
+                else{
+                    cout << "Bad Input: linesize found but no digits were found!" << endl;
+                    while( ( val = get_sizeof_cacheline() ) == 0 ){
+                        cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;
+                    }
+                }
+                block_size = val;
+                continue;
+            }
+            found = str.find("asso");
+            if ( found != string::npos ) {
+                char *line = &(str[0]);
+                cout << line << endl;
+                token = strtok(line," ");
+                if(token != NULL) {
+                    token = strtok(NULL," ");
+                    if(token == NULL ){
+                        cout << "Bad Input: associativity found but no digits were found!" << endl;
+                        while( ( val = get_associativity() ) == 0 ){
+                            cout << "Bad Input: Associativity must be power of 2!\n" << endl;
+                        }
+                        asso = val;
+                        continue;
+                    }
+                    val = strtoul(token,&endptr,10);
+                    if ((errno == ERANGE && (val == ULONG_MAX) )
+                        || (errno != 0 && val == 0))  {
+                        perror("associativity: bad input - strtol\n");
+                        while( ( val = get_associativity() ) == 0 ){
+                            cout << "Bad Input: Associativity must be power of 2!\n" << endl;
+                        }
+                    }
+                    if (endptr == token) {
+                        fprintf(stderr, "Bad Input: associativity found but no digits were found!\n");
+                        while( ( val = get_associativity() ) == 0 ){
+                            cout << "Bad Input: Associativity must be power of 2!\n" << endl;
+                        }
+                    }
+                }
+                else{
+                    cout << "Bad Input: associativity found but no digits were found!" << endl;
+                    while( ( val = get_associativity() ) == 0 ){
+                        cout << "Bad Input: Associativity must be power of 2!\n" << endl;
+                    }
+                }
+                asso = val;
+                continue;
+            }
+            infile.close();
+        }
+        if(memory_size == 0){
+            while( ( memory_size = get_sizeof_memory() ) == 0 ){
+                cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+            }
+        }
+        if(word_size == 0 ){
+            while( ( word_size = get_sizeof_word() ) == 0 ){
+                cout << "Bad Input: Word Size must be power of 2!\n" << endl;
+            }
+        }
+        if(cache_size == 0){
+            while( ( cache_size = get_sizeof_cache()) == 0 ){
+                cout << "Bad Input: Cache Size must be power of 2!\n" << endl;
+            }
+        }
+        if(block_size == 0){
+            while( ( block_size = get_sizeof_cacheline() ) == 0 ){
+                cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;
+            }
+        }
+        if(asso == 0 ){
+            while( ( asso = get_associativity() ) == 0 ){
+                cout << "Bad Input: Associativity must be power of 2!\n" << endl;
+            }
+        }
     }
-    if( asso > cache_size/block_size ){
-        cout << "Bad Input: Associativity level is too high, try a lower value"<<endl;
-        cin.clear();
-        goto get_asso;
-    }
+    /* Input from user is complete and correct to this point */
+
     set_cache_specs(cache_size,block_size,memory_size,asso, &cache_specs);
-    for(unsigned i=0; i<asso; i++){
+    for(unsigned long i=0; i<asso; i++){
         init_entry.tag[i] = 0;
         init_entry.valid[i] = 0;
         init_entry.LRU[i] = 0;
     }
-	for(unsigned i=0; i<cache_specs.no_set; i++){
+	for(unsigned long i=0; i<cache_specs.no_set; i++){
 		cache.push_back(init_entry);
 	}
 
@@ -464,25 +726,28 @@ get_asso:
                 string token1 = str.substr(0,6);
                 string token2 = str.substr(7,string::npos);
                 if(token1.compare("source") == 0 ){
-                    filename.assign(token2);
-                    if(filename.size() > MAX_FILENAME){
+                    fname.assign(token2);
+                    if(fname.size() > MAX_FILENAME){
                         cout << "Filename exceeded max size\nExiting..." << endl;
                         exit(-1);
                     }
-                    cout << "Filename given: " << filename << endl << endl;
-                    infile.open(filename, ios::in);
-                    if (!infile){
+                    cout << "Filename given: " << fname << endl;
+                    file.open(fname, ios::in);
+                    if (!file){
                         cout << "Error! File not found...\n";
                         exit(-1);
                     }
-                    while (getline(infile, str)){
+                    while (getline(file, str)){
                         address = stoi(str);
                         cache_access(cache, address, &cache_specs,&prof_info);
                     }
-                    infile.close();
+                    file.close();
                     cout << endl;
                     cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
                     continue;
+                }
+                else{
+                    alnum_flag = 1;
                 }
             }
             /*Input single address*/
@@ -500,6 +765,7 @@ get_asso:
                 cout << endl;
                 cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
                 str.clear();
+                alnum_flag = 0;
                 continue;
             }
             address = stoi(str);

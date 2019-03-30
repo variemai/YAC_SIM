@@ -1,10 +1,15 @@
-CPP=g++
-CPPFLAGS=-std=c++14 -Wall -pedantic
+CC=g++
+CFLAGS=-std=c++14 -Wall -pedantic
+
 
 yac_sim: yac_sim.o
-	$(CPP) $(CPPFLAGS) -o yac_sim yac_sim.o
+	$(CC) $(CFLAGS) -o $@ $^
 
-yac_sim.o:
-	$(CPP) $(CPPFLAGS) -c yac_sim.cpp
+yac_sim.o: yac_sim.cpp
+	$(CC) $(CFLAGS) -c $^ -o $@
+
+cleanall: clean
+	rm -rf GPATH GTAGS GRTAGS
+
 clean:
-	rm -rf yac_sim yac_sim.o
+	rm -rf yac_sim yac_sim.o *~
