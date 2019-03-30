@@ -4,12 +4,10 @@ Created for the purposes of Computer Organization (CS-225) course CSD, Universit
 
 ## How To Use YAC Simulator
 ### Before running the simulator executable:  
-The simulator executable can be run with a configuration file as argument e.g.:  
-**./yac_sim config.txt**  
-the configuration file can contain all memory and cache parameters,  
-use **config.txt** as an example to create your own configurations.  
-If the configuration file does not specify all the parameters the user will be  
-asked to input them after running the simulator.  
+The simulator executable can be run with a configuration file as argument e.g.: **./yac_sim config.txt**  
+the configuration file can contain all memory and cache parameters, use **config.txt** as an example
+to create your own configurations. If the configuration file does not specify all the parameters 
+the user will be prompted to input them after running the simulator.  
 
 ### After running the simulator executable:  
 
