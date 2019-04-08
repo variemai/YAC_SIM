@@ -327,12 +327,15 @@ void clear_contents(vector<entry> &cache, cache_char* specs, cache_prof *prof_in
         for(unsigned long j=0; j<specs->asso; j++){
             cache[i].valid[j] = 0;
             cache[i].tag[j] = 0; //not necessary
+            if(specs->asso > 1){
+                cache[i].LRU[j] = 0;
+            }
         }
     }
     prof_info->check = 0;
     prof_info->hit = 0;
     prof_info->miss = 0;
-    cout << "CLEARED Cache Contents and Statistics" << endl;
+    cout << "Flushed Cache and Reseted Statistics" << endl;
 }
 
 void display_contents(vector<entry> &cache, cache_char* specs)
@@ -689,21 +692,23 @@ int main(int argc, char* argv[])
 	}
 
 /***************************Simulation Starting********************************/
-    cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+    cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
 	while (true){
         getline(cin,str);
         if(str.length() > 0 ){
-            if(str.compare("cmd") == 0){
+            if(str.compare("help") == 0){
                 printf("\texit:\t\t\tPrints the Statistics and exits YAC Simulator\n");
                 printf("\tsource <filename>:\tRead addresses from a file\n");
                 printf("\tdisplay:\t\tPrints the contents of the Cache and the\
  Statistics\n");
-                printf("\tclear:\t\t\tClears the contents of the Cache and resets\
+                printf("\tflush:\t\t\tClears the contents of the Cache and resets\
  statistics\n");
+                printf("\thelp:\t\t\tDisplays this message\n");
                 continue;
             }
             if(str.compare("exit") == 0 ) {
                 print_results(&prof_info);
+                cout << "Exit YAC Simulator!" << endl;
                 break;
             }
             /*Display contents of cache*/
@@ -712,13 +717,13 @@ int main(int argc, char* argv[])
                 cout << endl;
                 print_results(&prof_info);
                 cout << endl;
-                cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+                cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
                 continue;
             }
-            if(str.compare("clear") == 0 ){
+            if(str.compare("flush") == 0 ){
                 clear_contents(cache,&cache_specs,&prof_info);
                 cout << endl;
-                cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+                cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
                 continue;
             }
             /*Input from file*/
@@ -743,7 +748,7 @@ int main(int argc, char* argv[])
                     }
                     file.close();
                     cout << endl;
-                    cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+                    cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
                     continue;
                 }
                 else{
@@ -763,7 +768,7 @@ int main(int argc, char* argv[])
             if(alnum_flag == 1){
                 cout << "Wrong command or Address not alphanumeric"<< endl;
                 cout << endl;
-                cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+                cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
                 str.clear();
                 alnum_flag = 0;
                 continue;
@@ -771,7 +776,7 @@ int main(int argc, char* argv[])
             address = stoi(str);
             cache_access(cache, address, &cache_specs,&prof_info);
             cout << endl;
-            cout << "Insert an address or a valid command, type \"cmd\" for a list of available commands"<<endl;
+            cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
         }
 	}
 	return 0;
