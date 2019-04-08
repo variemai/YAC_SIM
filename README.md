@@ -44,8 +44,8 @@ simulation.
 **Available Simulation commands:**  
 - **source < filename >**:  Reads addresses from a file with a given filename and reports Hits & Misses  (Sample files trace.txt, trace1.txt).
 - **display**:  Displays the contents of the Cache and the Statistics (Hit/Miss Ratio).  
-- **clear**:  Clears the contents of the Cache and the resets the Stastistics  
-- **cmd**:  Display the available commands  
+- **flush**:  Clears the contents of the Cache and the resets the Stastistics  
+- **help**:  Display the available commands  
 - **exit**: Display the Statistics and exits the YAC Simulator  
 - **Typing a valid address in decimal** e.g. "100" YAC Sim will simulate the access of that address
 
