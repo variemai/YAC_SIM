@@ -29,10 +29,332 @@
 #include <limits>
 #include <cmath>
 #include <string.h>
-#define MAX_FILENAME 256
-using namespace std;
+#include <string>
+#include <FL/Fl.H>
+#include <FL/Fl_Box.H>
+#include <FL/Fl_Window.H>
+#include <FL/Fl_Double_Window.H>
+#include <FL/Fl_Table.H>
+#include <FL/Fl_Int_Input.H>
+#include <FL/fl_draw.H>
+#pragma warning(disable : 4996)
 
+using namespace std;
+#define MAX_FILENAME 256
 unsigned long word_size;
+
+const int MAX_COLS = 8;
+const int MAX_ROWS = 64;
+
+class MyTable : public Fl_Table {
+
+	char data[MAX_ROWS][MAX_COLS];		// data array for cells
+
+	// Draw the row/col headings
+	//    Make this a dark thin upbox with the text inside.
+	//
+	void DrawHeader(const char* s, int X, int Y, int W, int H) {
+		fl_push_clip(X, Y, W, H);
+		fl_draw_box(FL_THIN_UP_BOX, X, Y, W, H, row_header_color());
+		fl_color(FL_BLACK);
+		fl_draw(s, X, Y, W, H, FL_ALIGN_CENTER);
+		fl_pop_clip();
+	}
+	// Draw the cell data
+	//    Dark gray text on white background with subtle border
+	//
+	void DrawData(const char* s, int X, int Y, int W, int H) {
+		fl_push_clip(X, Y, W, H);
+		// Draw cell bg
+		fl_color(FL_WHITE); fl_rectf(X, Y, W, H);
+		// Draw cell data
+		fl_color(FL_GRAY0); fl_draw(s, X, Y, W, H, FL_ALIGN_CENTER);
+		// Draw box border
+		fl_color(color()); fl_rect(X, Y, W, H);
+		fl_pop_clip();
+	}
+	// Handle drawing table's cells
+	//     Fl_Table calls this function to draw each visible cell in the table.
+	//     It's up to us to use FLTK's drawing functions to draw the cells the way we want.
+	//
+	void draw_cell(TableContext context, int ROW = 0, int COL = 0, int X = 0, int Y = 0, int W = 0, int H = 0) {
+		static char s[40];
+		switch (context) {
+		case CONTEXT_STARTPAGE:                   // before page is drawn..
+			fl_font(FL_HELVETICA, 16);              // set the font for our drawing operations
+			return;
+		case CONTEXT_COL_HEADER:                  // Draw column headers
+			if (COL % word_size == 0 && COL!=0) {
+				sprintf(s, "TAGS");
+			}
+			else {
+				sprintf(s, "WORD%d", COL);		// "A", "B", "C", etc.
+			}     
+			DrawHeader(s, X, Y, W, H);
+			return;
+		case CONTEXT_ROW_HEADER:                  // Draw row headers
+			sprintf(s, "%02x:", ROW);                 // "001:", "002:", etc
+			DrawHeader(s, X, Y, W, H);
+			return;
+		case CONTEXT_CELL:                        // Draw data in cells
+			sprintf(s, "%c", data[ROW][COL]);
+			DrawData(s, X, Y, W, H);
+			return;
+		default:
+			return;
+		}
+	}
+public:
+	// Constructor
+	//     Make our data array, and initialize the table options.
+	//
+	MyTable(int X, int Y, int W, int H, const char* L = 0) : Fl_Table(X, Y, W, H, L) {
+		// Fill data array
+		for (int r = 0; r < X; r++)
+			for (int c = 0; c < Y; c++)
+				data[r][c] = 'X';
+		// Rows
+		rows(X);             // how many rows
+		row_header(1);              // enable row headers (along left)
+		row_height_all(20);         // default height of rows
+		row_resize(0);              // disable row resizing
+		row_header_width(40);
+		// Cols
+		cols(Y);             // how many columns
+		col_header(1);              // enable column headers (along top)
+		col_width_all(80);          // default width of columns
+		col_resize(1);              // enable column resizing
+		end();			// end the Fl_Table group
+	}
+	~MyTable() { }
+};
+
+class Spreadsheet : public Fl_Table {
+	Fl_Int_Input* input;					// single instance of Fl_Int_Input widget
+	int values[MAX_ROWS][MAX_COLS];			// array of data for cells
+	int row_edit, col_edit;				// row/col being modified
+
+protected:
+	void draw_cell(TableContext context, int = 0, int = 0, int = 0, int = 0, int = 0, int = 0);
+	void event_callback2();				// table's event callback (instance)
+	static void event_callback(Fl_Widget*, void* v) {	// table's event callback (static)
+		((Spreadsheet*)v)->event_callback2();
+	}
+	static void input_cb(Fl_Widget*, void* v) {		// input widget's callback
+		((Spreadsheet*)v)->set_value_hide();
+	}
+
+public:
+	Spreadsheet(int X, int Y, int W, int H, const char* L = 0) : Fl_Table(X, Y, W, H, L) {
+		callback(&event_callback, (void*)this);
+		when(FL_WHEN_NOT_CHANGED | when());
+		// Create input widget that we'll use whenever user clicks on a cell
+		input = new Fl_Int_Input(W / 2, H / 2, 0, 0);
+		input->hide();
+		input->callback(input_cb, (void*)this);
+		input->when(FL_WHEN_ENTER_KEY_ALWAYS);		// callback triggered when user hits Enter
+		input->maximum_size(5);
+		input->color(FL_YELLOW);
+		for (int c = 0; c < MAX_COLS; c++)
+			for (int r = 0; r < MAX_ROWS; r++)
+				values[r][c] = c + (r * MAX_COLS);		// initialize cells
+		end();
+		row_edit = col_edit = 0;
+		set_selection(0, 0, 0, 0);
+	}
+	~Spreadsheet() { }
+
+	// Apply value from input widget to values[row][col] array and hide (done editing)
+	void set_value_hide() {
+		values[row_edit][col_edit] = atoi(input->value());
+		input->hide();
+		window()->cursor(FL_CURSOR_DEFAULT);		// XXX: if we don't do this, cursor can disappear!
+	}
+	// Start editing a new cell: move the Fl_Int_Input widget to specified row/column
+	//    Preload the widget with the cell's current value,
+	//    and make the widget 'appear' at the cell's location.
+	//
+	void start_editing(int R, int C) {
+		row_edit = R;					// Now editing this row/col
+		col_edit = C;
+		set_selection(R, C, R, C);				// Clear any previous multicell selection
+		int X, Y, W, H;
+		find_cell(CONTEXT_CELL, R, C, X, Y, W, H);		// Find X/Y/W/H of cell
+		input->resize(X, Y, W, H);				// Move Fl_Input widget there
+		char s[30]; sprintf(s, "%d", values[R][C]);		// Load input widget with cell's current value
+		input->value(s);
+		input->position(0, strlen(s));			// Select entire input field
+		input->show();					// Show the input widget, now that we've positioned it
+		input->take_focus();
+	}
+	// Tell the input widget it's done editing, and to 'hide'
+	void done_editing() {
+		if (input->visible()) {				// input widget visible, ie. edit in progress?
+			set_value_hide();					// Transfer its current contents to cell and hide
+		}
+	}
+	// Return the sum of all rows in this column
+	int sum_rows(int C) {
+		int sum = 0;
+		for (int r = 0; r < rows() - 1; ++r)			// -1: don't include cell data in 'totals' column
+			sum += values[r][C];
+		return(sum);
+	}
+	// Return the sum of all cols in this row
+	int sum_cols(int R) {
+		int sum = 0;
+		for (int c = 0; c < cols() - 1; ++c)			// -1: don't include cell data in 'totals' column
+			sum += values[R][c];
+		return(sum);
+	}
+	// Return the sum of all cells in table
+	int sum_all() {
+		int sum = 0;
+		for (int c = 0; c < cols() - 1; ++c)			// -1: don't include cell data in 'totals' column
+			for (int r = 0; r < rows() - 1; ++r)			// -1: ""
+				sum += values[r][c];
+		return(sum);
+	}
+};
+
+// Handle drawing all cells in table
+void Spreadsheet::draw_cell(TableContext context, int R, int C, int X, int Y, int W, int H) {
+	static char s[30];
+	switch (context) {
+	case CONTEXT_STARTPAGE:			// table about to redraw
+		break;
+
+	case CONTEXT_COL_HEADER:			// table wants us to draw a column heading (C is column)
+		fl_font(FL_HELVETICA | FL_BOLD, 14);	// set font for heading to bold
+		fl_push_clip(X, Y, W, H);			// clip region for text
+		{
+			fl_draw_box(FL_THIN_UP_BOX, X, Y, W, H, col_header_color());
+			fl_color(FL_BLACK);
+			if (C == cols() - 1) {			// Last column? show 'TOTAL'
+				fl_draw("TOTAL", X, Y, W, H, FL_ALIGN_CENTER);
+			}
+			else {				// Not last column? show column letter
+				sprintf(s, "%c", 'A' + C);
+				fl_draw(s, X, Y, W, H, FL_ALIGN_CENTER);
+			}
+		}
+		fl_pop_clip();
+		return;
+
+	case CONTEXT_ROW_HEADER:			// table wants us to draw a row heading (R is row)
+		fl_font(FL_HELVETICA | FL_BOLD, 14);	// set font for row heading to bold
+		fl_push_clip(X, Y, W, H);
+		{
+			fl_draw_box(FL_THIN_UP_BOX, X, Y, W, H, row_header_color());
+			fl_color(FL_BLACK);
+			if (R == rows() - 1) {			// Last row? Show 'Total'
+				fl_draw("TOTAL", X, Y, W, H, FL_ALIGN_CENTER);
+			}
+			else {				// Not last row? show row#
+				sprintf(s, "%d", R + 1);
+				fl_draw(s, X, Y, W, H, FL_ALIGN_CENTER);
+			}
+		}
+		fl_pop_clip();
+		return;
+
+	case CONTEXT_CELL: {			// table wants us to draw a cell
+		if (R == row_edit && C == col_edit && input->visible()) {
+			return;					// dont draw for cell with input widget over it
+		}
+		// Background
+		if (C < cols() - 1 && R < rows() - 1) {
+			fl_draw_box(FL_THIN_UP_BOX, X, Y, W, H, is_selected(R, C) ? FL_YELLOW : FL_WHITE);
+		}
+		else {
+			fl_draw_box(FL_THIN_UP_BOX, X, Y, W, H, is_selected(R, C) ? 0xddffdd00 : 0xbbddbb00);	// money green
+		}
+		// Text
+		fl_push_clip(X + 3, Y + 3, W - 6, H - 6);
+		{
+			fl_color(FL_BLACK);
+			if (C == cols() - 1 || R == rows() - 1) {	// Last row or col? Show total
+				fl_font(FL_HELVETICA | FL_BOLD, 14);	// ..in bold font
+				if (C == cols() - 1 && R == rows() - 1) {	// Last row+col? Total all cells
+					sprintf(s, "%d", sum_all());
+				}
+				else if (C == cols() - 1) {		// Row subtotal
+					sprintf(s, "%d", sum_cols(R));
+				}
+				else if (R == rows() - 1) {		// Col subtotal
+					sprintf(s, "%d", sum_rows(C));
+				}
+				fl_draw(s, X + 3, Y + 3, W - 6, H - 6, FL_ALIGN_RIGHT);
+			}
+			else {				// Not last row or col? Show cell contents
+				fl_font(FL_HELVETICA, 14);		// ..in regular font
+				sprintf(s, "%d", values[R][C]);
+				fl_draw(s, X + 3, Y + 3, W - 6, H - 6, FL_ALIGN_RIGHT);
+			}
+		}
+		fl_pop_clip();
+		return;
+	}
+
+	case CONTEXT_RC_RESIZE:			// table resizing rows or columns
+		if (input->visible()) {
+			find_cell(CONTEXT_TABLE, row_edit, col_edit, X, Y, W, H);
+			input->resize(X, Y, W, H);
+			init_sizes();
+		}
+		return;
+
+	default:
+		return;
+	}
+}
+
+// Callback whenever someone clicks on different parts of the table
+void Spreadsheet::event_callback2() {
+	int R = callback_row();
+	int C = callback_col();
+	TableContext context = callback_context();
+
+	switch (context) {
+	case CONTEXT_CELL: {				// A table event occurred on a cell
+		switch (Fl::event()) { 				// see what FLTK event caused it
+		case FL_PUSH:					// mouse click?
+			done_editing();				// finish editing previous
+			if (R != rows() - 1 && C != cols() - 1)		// only edit cells not in total's columns
+				start_editing(R, C);				// start new edit
+			return;
+
+		case FL_KEYBOARD:				// key press in table?
+			if (Fl::event_key() == FL_Escape) exit(0);	// ESC closes app
+			done_editing();				// finish any previous editing
+			if (C == cols() - 1 || R == rows() - 1) return;	// no editing of totals column
+			switch (Fl::e_text[0]) {
+			case '0': case '1': case '2': case '3':	// any of these should start editing new cell
+			case '4': case '5': case '6': case '7':
+			case '8': case '9': case '+': case '-':
+				start_editing(R, C);			// start new edit
+				input->handle(Fl::event());		// pass typed char to input
+				break;
+			case '\r': case '\n':			// let enter key edit the cell
+				start_editing(R, C);			// start new edit
+				break;
+			}
+			return;
+		}
+		return;
+	}
+
+	case CONTEXT_TABLE:					// A table event occurred on dead zone in table
+	case CONTEXT_ROW_HEADER:				// A table event occurred on row/column header
+	case CONTEXT_COL_HEADER:
+		done_editing();					// done editing, hide
+		return;
+
+	default:
+		return;
+	}
+}
+
 
 typedef struct profile_info{
 	int check;
@@ -84,7 +406,7 @@ unsigned long get_sizeof_memory(void)
     cin >> memory_size;
     if(cin.fail()){
         cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        //cin.ignore(std::numeric_limits<std::streamsize>, '\n');
         cout << "Bad Input: Memory size is not a number" << endl;
         return 0;
     }
@@ -98,7 +420,7 @@ unsigned long get_sizeof_word(void)
     cin >> sizeof_word;
     if(cin.fail()){
         cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        //cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         cout << "Bad Input: Word size is not a number" << endl;
         return 0;
     }
@@ -111,7 +433,7 @@ unsigned long  get_sizeof_cache(void){
     cin >> sizeof_cache;
     if(cin.fail()){
         cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        //cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         cout << "Bad Input: Cache size is not a number" << endl;
         return 0;
     }
@@ -125,7 +447,7 @@ unsigned long get_sizeof_cacheline(void)
     cin >> block_size;
     if(cin.fail()){
         cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        //cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         cout << "Bad Input: Block size is not a number" << endl;
     }
     return (isPowerOfTwo(block_size) == 0 ) ? 0 : block_size;
@@ -139,7 +461,7 @@ unsigned long get_associativity(void)
     cin >> asso;
     if(cin.fail()){
         cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        //cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         cout << "Bad Input: Associativity is not a number" << endl;
         return 0;
     }
@@ -455,7 +777,7 @@ int main(int argc, char* argv[])
             cout << "Error! File not found...\n";
             exit(-1);
         }
-        while (std::getline(infile, str)){
+        while (getline(infile, str)){
             found = str.find("memsize");
             if ( found != string::npos ) {
                 char *line = &(str[0]);
@@ -691,8 +1013,45 @@ int main(int argc, char* argv[])
 		cache.push_back(init_entry);
 	}
 
+
+	Fl_Double_Window win(0,0,442, 200, "Way 0");
+	MyTable table(8, 5, 442, 200);
+	win.end();
+	win.resizable(table);
+	Fl_Double_Window win2(454,0,442, 200, "Way 1");
+	MyTable table2(8, 5, 442, 200);
+	win2.end();
+	win2.resizable(table2);
+	win.show();
+	win2.show();
+	Fl::run();
+
+	/*fl_double_window* win = new fl_double_window(862, 322, "fl_table spreadsheet");
+	spreadsheet* table = new spreadsheet(10, 10, win->w() - 20, win->h() - 20);
+	table->tooltip("use keyboard to navigate cells:\n"
+		"arrow keys or tab/shift-tab");
+	
+	table->row_header(1);
+	table->row_header_width(70);
+	table->row_resize(1);
+	table->rows(max_rows + 1);		
+	table->row_height_all(25);
+	
+	table->col_header(1);
+	table->col_header_height(25);
+	table->col_resize(1);
+	table->cols(max_cols + 1);		
+	table->col_width_all(70);
+	
+	win->end();
+	win->resizable(table);
+	win->show();
+	fl::run();*/
+
+
 /***************************Simulation Starting********************************/
-    cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+    cout << "Insert an address or a valid command, type \"help\" for a list of\
+ available commands"<<endl;
 	while (true){
         getline(cin,str);
         if(str.length() > 0 ){
@@ -713,17 +1072,21 @@ int main(int argc, char* argv[])
             }
             /*Display contents of cache*/
             if(str.compare("display") == 0 ){
+				win.show();
+				Fl::run();
                 display_contents(cache,&cache_specs);
                 cout << endl;
                 print_results(&prof_info);
                 cout << endl;
-                cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+                cout << "Insert an address or a valid command, type \"help\" \
+for a list of available commands"<<endl;
                 continue;
             }
             if(str.compare("flush") == 0 ){
                 clear_contents(cache,&cache_specs,&prof_info);
                 cout << endl;
-                cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+                cout << "Insert an address or a valid command, type \"help\" \
+for a list of available commands"<<endl;
                 continue;
             }
             /*Input from file*/
@@ -748,7 +1111,8 @@ int main(int argc, char* argv[])
                     }
                     file.close();
                     cout << endl;
-                    cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+                    cout << "Insert an address or a valid command, type \"help\" \
+for a list of available commands"<<endl;
                     continue;
                 }
                 else{
@@ -768,15 +1132,17 @@ int main(int argc, char* argv[])
             if(alnum_flag == 1){
                 cout << "Wrong command or Address not alphanumeric"<< endl;
                 cout << endl;
-                cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+                cout << "Insert an address or a valid command, type \"help\" \
+for a list of available commands"<<endl;
                 str.clear();
                 alnum_flag = 0;
                 continue;
             }
-            address = stoi(str);
+            address = std::stoi(str);
             cache_access(cache, address, &cache_specs,&prof_info);
             cout << endl;
-            cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+            cout << "Insert an address or a valid command, type \"help\" \
+for a list of available commands"<<endl;
         }
 	}
 	return 0;
