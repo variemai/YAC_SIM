@@ -691,6 +691,8 @@ int main(int argc, char* argv[])
 		cache.push_back(init_entry);
 	}
 
+    print_specs(&cache_specs);
+
 /***************************Simulation Starting********************************/
     cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
 	while (true){
