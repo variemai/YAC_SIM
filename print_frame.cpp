@@ -16,7 +16,7 @@ int main(void){
     string Index = "Index";
     int index_size = 6;
     int l_side, r_side;
-    int no_sets = 8;
+    int no_sets = 4;
     if (tag_size > 5 ){
         int offset = tag_size - Tag.length() - 1;
         for(i=0; i<offset; i++){
@@ -108,8 +108,11 @@ int main(void){
                 max = x_way_frame;
             }
             if( i%2 == 0){
-                for(j=0; j<max; j++){
-                    if(j == x_index_frame - 1){
+                for(j=0; j<max-1; j++){
+                    if(j == x_index_frame - 1 && k==0){
+                        printf("|");
+                    }
+                    else if( j == x_index_frame + 6 && k==0){
                         printf("|");
                     }
                     else{
