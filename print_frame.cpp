@@ -11,10 +11,12 @@ int main(void){
     int no_ways = 4;
     string Valid = " Valid |";
     string Data = " Data |";
-    int tag_size = 7;
+    int tag_size = 8;
     string Tag = " Tag";
-    string Index = " Index";
+    string Index = "Index";
     int index_size = 6;
+    int l_side, r_side;
+    int no_sets = 8;
     if (tag_size > 5 ){
         int offset = tag_size - Tag.length() - 1;
         for(i=0; i<offset; i++){
@@ -22,14 +24,23 @@ int main(void){
         }
     }
     Tag.append(" |");
-    if ( index_size > 8 ){
+    if ( index_size > 7 ){
         int offset = index_size - Index.length() - 1;
         for(i=0; i<offset; i++){
             Index.append(" ");
         }
     }
     Index.append(" |");
+    x_index_frame = Index.length();
     x_way_frame = Valid.length()+Data.length()+Tag.length();
+    if (x_way_frame % 2 == 0){
+        l_side = (x_way_frame - 6 ) / 2;
+        r_side = l_side;
+    }
+    else{
+        l_side = 1+(x_way_frame - 6) / 2;
+        r_side =(x_way_frame - 6 ) / 2;
+    }
     for(k=0; k<no_ways; k++){
         if( k == 0 ){
             for(j=0; j<x_index_frame; j++){
@@ -41,16 +52,16 @@ int main(void){
         }
     }
     printf("\n");
-    for(j=0; j<x_index_frame; j++){
+    for(j=0; j<x_index_frame - 1; j++){
         printf(" ");
     }
     printf("|");
     for(k=0; k<no_ways; k++){
-        for(i=0; i<(x_way_frame-5)/2; i++){
+        for(i=0; i<l_side; i++){
             printf(" ");
         }
-        printf("Way%d",k);
-        for(i=0; i<(x_way_frame-5)/2; i++){
+        printf("Way %d",k);
+        for(i=0; i<r_side; i++){
             printf(" ");
         }
         printf("|");
@@ -73,10 +84,48 @@ int main(void){
         cout << Data;
         cout << Tag ;
     }
-    // for(i=0; i<x_way_frame-17; i++){
-    //     printf(" ");
-    // }
     printf("\n");
-    printf("%d, %d, %d\n",Valid.length(),Data.length(),Tag.length());
+    for(i=0; i<no_ways; i++){
+        if(i==0){
+            for(j=0; j<x_index_frame+x_way_frame-1; j++){
+                printf("-");
+            }
+        }
+        else{
+            for(j=0; j<x_way_frame; j++){
+                printf("-");
+            }
+        }
+    }
+    printf("\n");
+    for(i=0; i<2*no_sets; i++){
+        for(k=0; k<no_ways; k++){
+            int max;
+            if(k == 0){
+                max = x_index_frame+x_way_frame;
+            }
+            else{
+                max = x_way_frame;
+            }
+            if( i%2 == 0){
+                for(j=0; j<max; j++){
+                    if(j == x_index_frame - 1){
+                        printf("|");
+                    }
+                    else{
+                        printf(" ");
+                    }
+                }
+                printf("|");
+            }
+            else{
+                for(j=0; j<max; j++){
+                    printf("-");
+                }
+            }
+        }
+        printf("\n");
+    }
+    //printf("%d, %d, %d\n",Valid.length(),Data.length(),Tag.length());
     return 0;
 }
