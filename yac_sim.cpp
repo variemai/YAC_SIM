@@ -338,12 +338,106 @@ void clear_contents(vector<entry> &cache, cache_char* specs, cache_prof *prof_in
     cout << "Flushed Cache and Reseted Statistics" << endl;
 }
 
+void _print_frame(cache_char* specs){
+    int i,j,k;
+    string Valid = " Valid |";
+    string Data = " Data |";
+    string Tag = " Tag";
+    string Index = "Index";
+    int l_side, r_side;
+    int no_ways = specs->asso;
+    int no_sets = specs->no_set;
+    if (tag_size > 5 ){
+        int offset = tag_size - Tag.length() - 1;
+        for(i=0; i<offset; i++){
+            Tag.append(" ");
+        }
+    }
+    Tag.append(" |");
+    if ( index_size > 7 ){
+        int offset = index_size - Index.length() - 1;
+        for(i=0; i<offset; i++){
+            Index.append(" ");
+        }
+    }
+    Index.append(" |");
+    x_index_frame = Index.length();
+    x_way_frame = Valid.length()+Data.length()+Tag.length();
+    if (x_way_frame % 2 == 0){
+        l_side = (x_way_frame - 6 ) / 2;
+        r_side = l_side;
+    }
+    else{
+        l_side = 1+(x_way_frame - 6) / 2;
+        r_side =(x_way_frame - 6 ) / 2;
+    }
+    for(k=0; k<no_ways; k++){
+        if( k == 0 ){
+            for(j=0; j<x_index_frame; j++){
+                printf(" ");
+            }
+        }
+        for( i=0; i < x_way_frame; i++){
+            printf("-");
+        }
+    }
+    printf("\n");
+    for(j=0; j<x_index_frame - 1; j++){
+        printf(" ");
+    }
+    printf("|");
+    for(k=0; k<no_ways; k++){
+        for(i=0; i<l_side; i++){
+            printf(" ");
+        }
+        printf("Way %d",k);
+        for(i=0; i<r_side; i++){
+            printf(" ");
+        }
+        printf("|");
+    }
+    printf("\n");
+    for(k=0; k<no_ways; k++){
+        if ( k ==0 ){
+            for(j=0; j<x_index_frame; j++){
+                printf(" ");
+            }
+        }
+        for(i=0; i < x_way_frame; i++){
+            printf("-");
+        }
+    }
+    printf("\n");
+    cout << Index;
+    for(k=0; k<no_ways; k++){
+        cout << Valid;
+        cout << Data;
+        cout << Tag ;
+    }
+    printf("\n");
+    for(i=0; i<no_ways; i++){
+        if(i==0){
+            for(j=0; j<x_index_frame+x_way_frame-1; j++){
+                printf("-");
+            }
+        }
+        else{
+            for(j=0; j<x_way_frame; j++){
+                printf("-");
+            }
+        }
+    }
+    printf("\n");
+
+}
+
 void display_contents(vector<entry> &cache, cache_char* specs)
 {
+    _print_frame(specs);
     for(unsigned i=0; i<specs->no_set; i++) {
         for(unsigned long j=0; j<specs->asso; j++){
 		bitset<32> bits = {cache[i].tag[j]};
-		cout << "Index: ";
+		//cout << "Index: ";
 		print_bin_index(i,specs->index_size);
         cout << " Way: " << j;
 		cout << " Valid: " << cache[i].valid[j];

@@ -7,7 +7,7 @@ int main(void){
     int x_way_frame = 21;
     int y_way_frame = 60;
     int x_way_title_flame = x_way_frame;
-    int x_index_frame = 7;
+    int x_index_frame = 8;
     int no_ways = 4;
     string Valid = " Valid |";
     string Data = " Data |";
@@ -109,15 +109,37 @@ int main(void){
             }
             if( i%2 == 0){
                 for(j=0; j<max-1; j++){
-                    if(j == x_index_frame - 1 && k==0){
-                        printf("|");
-                    }
-                    else if( j == x_index_frame + 6 && k==0){
-                        printf("|");
+                    if (k ==0 ){
+                        if(j == x_index_frame - 1 ){
+                            printf("|");
+                        }
+                        else if( j == x_index_frame + 7 ){
+                            printf("|");
+                        }
+                        else if( j == x_index_frame + 7 + Valid.length() - 1 ){
+                            printf("|");
+                        }
+                        else{
+                            printf(" ");
+                            /*Print the index bits*/
+                            if(j < x_index_frame - 1){
+
+                            }
+                        }
+
                     }
                     else{
-                        printf(" ");
+                        if ( j == Valid.length() -1){
+                            printf("|");
+                        }
+                        else if ( j == Valid.length()+ Data.length() -1){
+                            printf("|");
+                        }
+                        else{
+                            printf(" ");
+                        }
                     }
+
                 }
                 printf("|");
             }
