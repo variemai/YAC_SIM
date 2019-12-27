@@ -1,0 +1,5 @@
+memsize 1024
+cachesize 32
+wordsize 4
+linesize 4
+asso 2
