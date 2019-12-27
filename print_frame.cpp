@@ -9,21 +9,42 @@ int main(void){
     int x_way_title_flame = x_way_frame;
     int x_index_frame = 8;
     int no_ways = 4;
-    string Valid = " Valid |";
+    string Valid = " V |";
+    string Dirty = " D |";
     string Data = " Data |";
     int tag_size = 8;
-    string Tag = " Tag";
+    string Tag = "";
     string Index = "Index";
     int index_size = 6;
     int l_side, r_side;
     int no_sets = 4;
-    if (tag_size > 5 ){
-        int offset = tag_size - Tag.length() - 1;
-        for(i=0; i<offset; i++){
-            Tag.append(" ");
+    /*Prettier tag*/
+    if (tag_size > 5){
+        if ( (tag_size-3) % 2 == 0 ){
+            int tmp = (tag_size-3)/2;
+            for(i=0; i<tmp; i++){
+                Tag.append(" ");
+            }
+            Tag.append("Tag");
+            for(i=0; i<tmp; i++){
+                Tag.append(" ");
+            }
         }
+        else{
+            int tmp = (tag_size-3)/2;
+            for(i=0; i<tmp+1; i++){
+                Tag.append(" ");
+            }
+            Tag.append("Tag");
+            for(i=0; i<tmp; i++){
+                Tag.append(" ");
+            }
+        }
+        Tag.append(" |");
     }
-    Tag.append(" |");
+    else{
+        Tag.append(" Tag |");
+    }
     if ( index_size > 7 ){
         int offset = index_size - Index.length() - 1;
         for(i=0; i<offset; i++){
@@ -32,7 +53,7 @@ int main(void){
     }
     Index.append(" |");
     x_index_frame = Index.length();
-    x_way_frame = Valid.length()+Data.length()+Tag.length();
+    x_way_frame = Valid.length()+Dirty.length()+Data.length()+Tag.length();
     if (x_way_frame % 2 == 0){
         l_side = (x_way_frame - 6 ) / 2;
         r_side = l_side;
@@ -43,11 +64,14 @@ int main(void){
     }
     for(k=0; k<no_ways; k++){
         if( k == 0 ){
-            for(j=0; j<x_index_frame; j++){
+            for(j=0; j<x_index_frame - 1; j++){
                 printf(" ");
             }
         }
         for( i=0; i < x_way_frame; i++){
+            printf("-");
+        }
+        if( k == no_ways -1 ){
             printf("-");
         }
     }
@@ -69,11 +93,14 @@ int main(void){
     printf("\n");
     for(k=0; k<no_ways; k++){
         if ( k ==0 ){
-            for(j=0; j<x_index_frame; j++){
+            for(j=0; j<x_index_frame -1; j++){
                 printf(" ");
             }
         }
         for(i=0; i < x_way_frame; i++){
+            printf("-");
+        }
+        if( k == no_ways -1 ){
             printf("-");
         }
     }
@@ -81,13 +108,14 @@ int main(void){
     cout << Index;
     for(k=0; k<no_ways; k++){
         cout << Valid;
+        cout << Dirty;
         cout << Data;
         cout << Tag ;
     }
     printf("\n");
     for(i=0; i<no_ways; i++){
         if(i==0){
-            for(j=0; j<x_index_frame+x_way_frame-1; j++){
+            for(j=0; j<x_index_frame+x_way_frame; j++){
                 printf("-");
             }
         }
@@ -113,10 +141,13 @@ int main(void){
                         if(j == x_index_frame - 1 ){
                             printf("|");
                         }
-                        else if( j == x_index_frame + 7 ){
+                        else if( j == x_index_frame + Valid.length() -1  ){
                             printf("|");
                         }
-                        else if( j == x_index_frame + 7 + Valid.length() - 1 ){
+                        else if ( j == x_index_frame + Valid.length() + Dirty.length()-1 ){
+                            printf("|");
+                        }
+                        else if ( j == x_index_frame + Valid.length() + Dirty.length() + Data.length() -1 ){
                             printf("|");
                         }
                         else{
@@ -132,7 +163,10 @@ int main(void){
                         if ( j == Valid.length() -1){
                             printf("|");
                         }
-                        else if ( j == Valid.length()+ Data.length() -1){
+                        else if ( j == Valid.length() + Dirty.length() - 1 ){
+                            printf("|");
+                        }
+                        else if ( j == Valid.length()+ Dirty.length() +Data.length() -1){
                             printf("|");
                         }
                         else{

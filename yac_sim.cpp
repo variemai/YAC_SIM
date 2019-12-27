@@ -1,7 +1,8 @@
 /*****************************************************************************\
 * YAC Sim - Yet Another Cache Simulator, created for the purposes of CS-225
-* course CSD, University of Crete, creates a cache with user defined attributes
-* and simulates accesses from user input
+* course CSD, University of Crete. YAC Sim emulates a cache  with user defined
+* attributes, simulates accesses via user input and measures the total hit/miss
+* ratio.
 * Copyright (C) 2018  Ioannis Vardas - vardas@ics.forth.gr
 *
 * This program is free software: you can redistribute it and/or modify
@@ -337,32 +338,57 @@ void clear_contents(vector<entry> &cache, cache_char* specs, cache_prof *prof_in
     prof_info->miss = 0;
     cout << "Flushed Cache and Reseted Statistics" << endl;
 }
-
+/* Print the frame of the cache  for each cache line and way*/
 void _print_frame(cache_char* specs){
-    int i,j,k;
-    string Valid = " Valid |";
+    unsigned i,j,k;
+    unsigned x_way_frame = 0;
+    unsigned x_index_frame = 8;
+    unsigned no_ways = specs->asso;
+    string Valid = " V |";
+    string Dirty = " D |";
     string Data = " Data |";
-    string Tag = " Tag";
+    unsigned tag_size = specs->tag_size;
+    string Tag = "";
     string Index = "Index";
-    int l_side, r_side;
-    int no_ways = specs->asso;
-    int no_sets = specs->no_set;
-    if (tag_size > 5 ){
-        int offset = tag_size - Tag.length() - 1;
-        for(i=0; i<offset; i++){
-            Tag.append(" ");
+    unsigned index_size = specs->index_size;
+    unsigned l_side, r_side;
+    unsigned no_sets =specs->no_set;
+    /*Prettier tag*/
+    if (tag_size > 5){
+        if ( (tag_size-3) % 2 == 0 ){
+            unsigned tmp = (tag_size-3)/2;
+            for(i=0; i<tmp; i++){
+                Tag.append(" ");
+            }
+            Tag.append("Tag");
+            for(i=0; i<tmp; i++){
+                Tag.append(" ");
+            }
         }
+        else{
+            unsigned tmp = (tag_size-3)/2;
+            for(i=0; i<tmp+1; i++){
+                Tag.append(" ");
+            }
+            Tag.append("Tag");
+            for(i=0; i<tmp; i++){
+                Tag.append(" ");
+            }
+        }
+        Tag.append(" |");
     }
-    Tag.append(" |");
+    else{
+        Tag.append(" Tag |");
+    }
     if ( index_size > 7 ){
-        int offset = index_size - Index.length() - 1;
+        unsigned offset = index_size - Index.length() - 1;
         for(i=0; i<offset; i++){
             Index.append(" ");
         }
     }
     Index.append(" |");
     x_index_frame = Index.length();
-    x_way_frame = Valid.length()+Data.length()+Tag.length();
+    x_way_frame = Valid.length()+Dirty.length()+Data.length()+Tag.length();
     if (x_way_frame % 2 == 0){
         l_side = (x_way_frame - 6 ) / 2;
         r_side = l_side;
@@ -373,11 +399,14 @@ void _print_frame(cache_char* specs){
     }
     for(k=0; k<no_ways; k++){
         if( k == 0 ){
-            for(j=0; j<x_index_frame; j++){
+            for(j=0; j<x_index_frame - 1; j++){
                 printf(" ");
             }
         }
         for( i=0; i < x_way_frame; i++){
+            printf("-");
+        }
+        if( k == no_ways -1 ){
             printf("-");
         }
     }
@@ -399,11 +428,14 @@ void _print_frame(cache_char* specs){
     printf("\n");
     for(k=0; k<no_ways; k++){
         if ( k ==0 ){
-            for(j=0; j<x_index_frame; j++){
+            for(j=0; j<x_index_frame -1; j++){
                 printf(" ");
             }
         }
         for(i=0; i < x_way_frame; i++){
+            printf("-");
+        }
+        if( k == no_ways -1 ){
             printf("-");
         }
     }
@@ -411,13 +443,14 @@ void _print_frame(cache_char* specs){
     cout << Index;
     for(k=0; k<no_ways; k++){
         cout << Valid;
+        cout << Dirty;
         cout << Data;
         cout << Tag ;
     }
     printf("\n");
     for(i=0; i<no_ways; i++){
         if(i==0){
-            for(j=0; j<x_index_frame+x_way_frame-1; j++){
+            for(j=0; j<x_index_frame+x_way_frame; j++){
                 printf("-");
             }
         }
@@ -428,7 +461,6 @@ void _print_frame(cache_char* specs){
         }
     }
     printf("\n");
-
 }
 
 void display_contents(vector<entry> &cache, cache_char* specs)
@@ -439,7 +471,66 @@ void display_contents(vector<entry> &cache, cache_char* specs)
 		bitset<32> bits = {cache[i].tag[j]};
 		//cout << "Index: ";
 		print_bin_index(i,specs->index_size);
-        cout << " Way: " << j;
+        //cout << " Way: " << j;
+        unsigned max;
+        if(k == 0){
+            max = x_index_frame+x_way_frame;
+        }
+        else{
+            max = x_way_frame;
+        }
+        if( i%2 == 0){
+                for(j=0; j<max-1; j++){
+                    if (k ==0 ){
+                        if(j == x_index_frame - 1 ){
+                            printf("|");
+                        }
+                        else if( j == x_index_frame + Valid.length() -1  ){
+                            printf("|");
+                        }
+                        else if ( j == x_index_frame + Valid.length() + Dirty.length()-1 ){
+                            printf("|");
+                        }
+                        else if ( j == x_index_frame + Valid.length() + Dirty.length() + Data.length() -1 ){
+                            printf("|");
+                        }
+                        else{
+                            printf(" ");
+                            /*Print the index bits*/
+                            if(j < x_index_frame - 1){
+
+                            }
+                        }
+
+                    }
+                    else{
+                        if ( j == Valid.length() -1){
+                            printf("|");
+                        }
+                        else if ( j == Valid.length() + Dirty.length() - 1 ){
+                            printf("|");
+                        }
+                        else if ( j == Valid.length()+ Dirty.length() +Data.length() -1){
+                            printf("|");
+                        }
+                        else{
+                            printf(" ");
+                        }
+                    }
+
+                }
+                printf("|");
+            }
+            else{
+                for(j=0; j<max; j++){
+                    printf("-");
+                }
+            }
+        }
+        printf("\n");
+    }
+
+
 		cout << " Valid: " << cache[i].valid[j];
         if(cache[i].valid[j]){
             cout << ", Tag: ";
