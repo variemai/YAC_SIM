@@ -25,12 +25,9 @@
 #include <limits.h>
 #include <vector>
 #include <stdint.h>
-#include <bitset>
-#include <locale>
-#include <limits>
-#include <cmath>
 #include <string.h>
 #include <string>
+#include "utils.h"
 
 #define MAX_FILENAME 256
 
@@ -68,95 +65,15 @@ typedef struct characteristics_of_cache{
 }cache_char;
 
 /*************************Function Declarations*******************************/
-bool isPowerOfTwo(unsigned long);
 unsigned LRU_policy(vector<entry> &cache,cache_char*);
 void set_cache_specs(unsigned long,unsigned long,unsigned long,unsigned long,
         cache_char*);
 void print_bin_index(unsigned long, unsigned);
 unsigned long return_word(unsigned long , unsigned, unsigned long, unsigned );
-unsigned powerof2(bitset<32>);
-unsigned pow2(unsigned long);
 void clear_contents(vector<entry> &cache, cache_char*);
-unsigned long get_sizeof_memory(void);
 void cache_access(vector<entry>& cache, unsigned long address,
 	cache_char* specs, cache_prof* prof_info);
 /*************************Function Definitions********************************/
-
-bool isPowerOfTwo(unsigned long n)
-{
-    return (ceil(log2(n)) == floor(log2(n)));
-}
-
-unsigned long get_sizeof_memory(void)
-{
-    unsigned long memory_size;
-    std::cout << "Enter the Main Memory size in Bytes: ";
-    cin >> memory_size;
-    if(cin.fail()){
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Bad Input: Memory size is not a number" << endl;
-        return 0;
-    }
-    return (isPowerOfTwo(memory_size) == 0) ? 0 : memory_size;
-}
-
-unsigned long get_sizeof_word(void)
-{
-    unsigned long sizeof_word;
-    std::cout << "Enter the size of the Word in Bytes: ";
-    cin >> sizeof_word;
-    if(cin.fail()){
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Bad Input: Word size is not a number" << endl;
-        return 0;
-    }
-    return (isPowerOfTwo(sizeof_word) == 0 ) ? 0 : sizeof_word;
-}
-
-unsigned long  get_sizeof_cache(void){
-    unsigned long sizeof_cache;
-    std::cout << "Enter the Cache size in Bytes: ";
-    cin >> sizeof_cache;
-    if(cin.fail()){
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Bad Input: Cache size is not a number" << endl;
-        return 0;
-    }
-    return (isPowerOfTwo(sizeof_cache) == 0 ) ? 0 : sizeof_cache;
-}
-
-unsigned long get_sizeof_cacheline(void)
-{
-    unsigned long block_size;
-    std::cout << "Enter the Cache Block(Line) size in Bytes: ";
-    cin >> block_size;
-    if(cin.fail()){
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Bad Input: Block size is not a number" << endl;
-    }
-    return (isPowerOfTwo(block_size) == 0 ) ? 0 : block_size;
-
-}
-
-unsigned long get_associativity(void)
-{
-    unsigned long asso;
-    std::cout << "Enter associativity (1,2,4,8 or 16): ";
-    cin >> asso;
-    if(cin.fail()){
-        cin.clear();
-        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        std::cout << "Bad Input: Associativity is not a number" << endl;
-        return 0;
-    }
-    if(asso == 1) return asso;
-    return (isPowerOfTwo(asso) == 0 ) ? 0 : asso;
-}
-
 
 /*Not used as function call*/
 unsigned LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index)
@@ -301,27 +218,6 @@ void cache_access(vector<entry> &cache, unsigned long address,
 	std::cout << endl;
 }
 
-/*Returns the index of the first bit that is equal to 1 in the bitset*/
-unsigned powerof2(bitset<32> bitset1)
-{
-    unsigned i;
-	for (i = 0; i < bitset1.size(); i++)
-	{
-		if (bitset1[i] == 1) break;
-	}
-	return i;
-}
-
-/*Returns the exponent of a number that is power of 2*/
-unsigned pow2(unsigned long num)
-{
-    unsigned i = 0;
-	while(num != 0 && num!=1 ){
-		num = num / 2;
-		i++;
-	}
-	return i;
-}
 
 void print_bin_index(unsigned long index, unsigned size)
 {
