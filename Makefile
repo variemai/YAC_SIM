@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-std=c++14 -Wall -pedantic
+CFLAGS=-O3 -march=native -std=c++17 -Wall -pedantic
 
 
 yac_sim: yac_sim.o

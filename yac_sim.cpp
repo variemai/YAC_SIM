@@ -359,7 +359,6 @@ void _print_frame(cache_char* specs){
     string Index = "Index";
     unsigned index_size = specs->index_size;
     unsigned l_side, r_side;
-    unsigned no_sets =specs->no_set;
     /*Prettier tag*/
     if (tag_size > 5){
         if ( (tag_size-3) % 2 == 0 ){
@@ -473,7 +472,7 @@ void _print_frame(cache_char* specs){
 
 void display_contents(vector<entry> &cache, cache_char* specs)
 {
-	unsigned i, j, k;
+	unsigned j;
 	int tmp, tmp_valid, tmp_tag;
     _print_frame(specs);
     for(unsigned i=0; i<2*specs->no_set; i++) {
