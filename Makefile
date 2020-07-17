@@ -15,4 +15,4 @@ cleanall: clean
 	rm -rf GPATH GTAGS GRTAGS
 
 clean:
-	rm -rf yac_sim yac_sim.o *~
+	rm -rf yac_sim *.o
