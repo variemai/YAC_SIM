@@ -861,7 +861,7 @@ int main(int argc, char* argv[])
             }
             if(str.compare("exit") == 0 ) {
                 print_results(&prof_info);
-                std::cout << "Exit YAC Simulator!" << endl;
+                std::cout << "Exiting YAC Simulator..." << endl;
                 break;
             }
             /*Display contents of cache*/
