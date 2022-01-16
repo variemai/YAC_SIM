@@ -569,13 +569,12 @@ int main(int argc, char* argv[])
     block_size = 0;
     memory_size = 0;
     word_size = 0 ;
-    std::cout << "\nYAC Simulator, Copyright (C) 2018 Ioannis Vardas\n";
-    std::cout << "Contact vardas@ics.forth.gr\n\n";
-    /*Print info about GPL licence*
-    std::cout << "This program is under ";
+    std::cout << "YAC Simulator, Copyright (C) 2018 Ioannis Vardas\n";
+    std::cout << "Contact johvardas@hotmail.com\n";
+    // Print info about GPL licence*
+    std::cout << "This software is under ";
     std::cout << "the terms of the GNU General Public License v3\nFor more info see";
     std::cout << ": <https://www.gnu.org/licenses/>" << endl << endl;
-    */
     if( argc < 2 ){
 
         while( ( memory_size = get_sizeof_memory() ) == 0 ){
