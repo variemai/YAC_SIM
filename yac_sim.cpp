@@ -22,10 +22,9 @@
 #include <iostream>
 #include <fstream>
 #include <cstdlib>
-#include <limits.h>
+#include <climits>
 #include <vector>
-#include <stdint.h>
-#include <string.h>
+#include <cstring>
 #include <string>
 #include "utils.h"
 
@@ -47,7 +46,7 @@ typedef struct profile_info{
 
 /*Cache entry layout*/
 typedef struct cache_entry{
-	unsigned short valid[16]; /*TODO use dynamic tables */
+	unsigned short valid[16]; /*TODO use vectors */
 	unsigned long tag[16];
     unsigned short LRU[16];
 }entry;
