@@ -30,7 +30,6 @@
 
 #define MAX_FILENAME 256
 
-using namespace std;
 
 unsigned long word_size = 0;
 unsigned x_way_frame = 0;
@@ -38,69 +37,69 @@ unsigned x_index_frame = 0;
 unsigned x_tag_frame = 0;
 
 
-typedef struct profile_info{
-	int check;
-	int hit;
-	int miss;
-}cache_prof;
-
-/*Cache entry layout*/
-typedef struct cache_entry{
-	unsigned short valid[16]; /*TODO use vectors */
-	unsigned long tag[16];
-    unsigned short LRU[16];
-}entry;
-
-/*Cache characteristics and some useful masks for bit operations*/
-typedef struct characteristics_of_cache{
-    unsigned long tmp_tag; /*tag mask*/
-    unsigned long tmp; /*index mask*/
-    unsigned block_offset;
-    unsigned tag_shift; /*how many bits are the tag bits shifted to the left*/
-    unsigned tag_size; /*in bits*/
-    unsigned index_size;
-    unsigned no_set;
-    unsigned long asso = 1;
-}cache_char;
-
-/*************************Function Declarations*******************************/
-unsigned LRU_policy(vector<entry> &cache,cache_char*);
-void set_cache_specs(unsigned long,unsigned long,unsigned long,unsigned long,
-        cache_char*);
-void print_bin_index(unsigned long, unsigned);
-unsigned long return_word(unsigned long , unsigned, unsigned long, unsigned );
-void clear_contents(vector<entry> &cache, cache_char*);
-void cache_access(vector<entry>& cache, unsigned long address,
-	cache_char* specs, cache_prof* prof_info);
-/*************************Function Definitions********************************/
-
-/*Not used as function call*/
-unsigned LRU_policy(vector<entry> &cache,cache_char*specs, unsigned long index)
-{
-    unsigned short min_lru;
-    unsigned way;
-    way = 0 ;
-    min_lru = cache[index].LRU[0];
-    for(unsigned i=0; i<specs->asso; i++){
-        if(cache[index].LRU[i] < min_lru ){
-            min_lru = cache[index].LRU[i];
-            way = i;
-            std::cout << " MIN_LRU =  " << min_lru << " ";
-        }
-    }
-    return way;
-}
-
+typedef struct profile_info{                                            
+	int check;                                                          
+	int hit;                                                            
+	int miss;                                                           
+}cache_prof;                                                            
+                                                                        
+/*Cache entry layout*/                                                  
+typedef struct cache_entry{                                             
+	unsigned short valid[16]; /*TODO use std::vectors */                
+	unsigned long tag[16];                                              
+    unsigned short LRU[16];                                             
+}entry;                                                                 
+                                                                        
+/*Cache characteristics and some useful masks for bit operations*/      
+typedef struct characteristics_of_cache{                                
+    unsigned long tmp_tag; /*tag mask*/                                 
+    unsigned long tmp; /*index mask*/                                   
+    unsigned block_offset;                                              
+    unsigned tag_shift; /*how many bits are the tag bits shifted to the left*/ 
+    unsigned tag_size; /*in bits*/                                      
+    unsigned index_size;                                                
+    unsigned no_set;                                                    
+    unsigned long asso = 1;                                             
+}cache_char;                                                            
+                                                                        
+/*************************Function Declarations*******************************/ 
+unsigned LRU_policy(std::vector<entry> &cache,cache_char*);             
+void set_cache_specs(unsigned long,unsigned long,unsigned long,unsigned long, 
+        cache_char*);                                                   
+void print_bin_index(unsigned long, unsigned);                          
+unsigned long return_word(unsigned long , unsigned, unsigned long, unsigned ); 
+void clear_contents(std::vector<entry> &cache, cache_char*);            
+void cache_access(std::vector<entry>& cache, unsigned long address,     
+	cache_char* specs, cache_prof* prof_info);                          
+/*************************Function Definitions********************************/ 
+                                                                       
+/*Not used as function call*/                                           
+unsigned LRU_policy(std::vector<entry> &cache,cache_char*specs, unsigned long index) 
+{                                                                       
+    unsigned short min_lru;                                             
+    unsigned way;                                                       
+    way = 0 ;                                                           
+    min_lru = cache[index].LRU[0];                                      
+    for(unsigned i=0; i<specs->asso; i++){                              
+        if(cache[index].LRU[i] < min_lru ){                             
+            min_lru = cache[index].LRU[i];                              
+            way = i;                                                    
+            std::cout << " MIN_LRU =  " << min_lru << " ";              
+        }                                                               
+    }                                                                   
+    return way;                                                         
+}                                                                       
+                                                                       
 void set_cache_specs(unsigned long cache_size, unsigned long block_size,
         unsigned long memory_size,unsigned long asso, cache_char* characteristics)
 {
     unsigned i, j;
     unsigned long no_blocks;
-	bitset<32> tag_mask;
-	bitset<32> index_mask{ ULONG_MAX };
-	bitset<32> bitset0{ memory_size };
-    bitset<32> bitset1{ cache_size };
-	bitset<32> bitset2{ block_size };
+	std::bitset<32> tag_mask;
+	std::bitset<32> index_mask{ ULONG_MAX };
+	std::bitset<32> bitset0{ memory_size };
+    std::bitset<32> bitset1{ cache_size };
+	std::bitset<32> bitset2{ block_size };
 	characteristics->tag_size = powerof2(bitset0);
     unsigned pow_of_asso = pow2(asso);
 	i = powerof2(bitset1);
@@ -127,12 +126,12 @@ void set_cache_specs(unsigned long cache_size, unsigned long block_size,
 void print_specs(cache_char* specs)
 {
     std::cout<<"Tag Size: "<<specs->tag_size<<"\nIndex size: "<<specs->index_size
-        <<endl<<"Tmp: "<<specs->tmp<<"\nTmp_tag: "<<specs->tmp_tag<<endl;
-    std::cout << "Tag Shift: " << specs->tag_shift<<endl;
-    std::cout << "Number of Sets: "<< specs->no_set << endl;
+        <<std::endl<<"Tmp: "<<specs->tmp<<"\nTmp_tag: "<<specs->tmp_tag<<std::endl;
+    std::cout << "Tag Shift: " << specs->tag_shift<<std::endl;
+    std::cout << "Number of Sets: "<< specs->no_set << std::endl;
 }
 
-void cache_access(vector<entry> &cache, unsigned long address,
+void cache_access(std::vector<entry> &cache, unsigned long address,
        cache_char* specs, cache_prof* prof_info)
 {
     unsigned long index, tag, old_address;
@@ -214,20 +213,20 @@ void cache_access(vector<entry> &cache, unsigned long address,
 		    cache[index].tag[0] = tag;
         }
     }
-	std::cout << endl;
+	std::cout << std::endl;
 }
 
 
 void print_bin_index(unsigned long index, unsigned size)
 {
-    bitset<32> bits = {index};
+    std::bitset<32> bits = {index};
 	for(unsigned i=size-1; i>=0; i--){
 		std::cout << bits[i];
 		if(i==0) break;
 	}
 }
 
-void clear_contents(vector<entry> &cache, cache_char* specs, cache_prof *prof_info){
+void clear_contents(std::vector<entry> &cache, cache_char* specs, cache_prof *prof_info){ 
     for(unsigned i=0; i<specs->no_set; i++) {
         for(unsigned long j=0; j<specs->asso; j++){
             cache[i].valid[j] = 0;
@@ -240,18 +239,18 @@ void clear_contents(vector<entry> &cache, cache_char* specs, cache_prof *prof_in
     prof_info->check = 0;
     prof_info->hit = 0;
     prof_info->miss = 0;
-    std::cout << "Flushed Cache and Reseted Statistics" << endl;
+    std::cout << "Flushed Cache and Reseted Statistics" << std::endl;
 }
 /* Print the frame of the cache  for each cache line and way*/
 void _print_frame(cache_char* specs){
     unsigned i,j,k;
     unsigned no_ways = specs->asso;
-    string Valid = " V |";
-    string Dirty = " D |";
-    string Data = " Data |";
+    std::string Valid = " V |";
+    std::string Dirty = " D |";
+    std::string Data = " Data |";
     unsigned tag_size = specs->tag_size;
-    string Tag = "";
-    string Index = "Index";
+    std::string Tag = "";
+    std::string Index = "Index";
     unsigned index_size = specs->index_size;
     unsigned l_side, r_side;
     /*Prettier tag*/
@@ -310,7 +309,7 @@ void _print_frame(cache_char* specs){
         }
         if( k == no_ways -1 ){
             printf("-");
-        }
+        }                                                               
     }
     printf("\n");
     for(j=0; j<x_index_frame - 1; j++){
@@ -365,15 +364,15 @@ void _print_frame(cache_char* specs){
     printf("\n");
 }
 
-void display_contents(vector<entry> &cache, cache_char* specs)
+void display_contents(std::vector<entry> &cache, cache_char* specs)
 {
 	unsigned j;
 	int tmp, tmp_valid, tmp_tag;
     _print_frame(specs);
     for(unsigned i=0; i<2*specs->no_set; i++) {
         for(unsigned long k=0; k<specs->asso; k++){
-		bitset<32> bits = {cache[i/2].tag[k]};
-		bitset<32> bits_of_index = { i/2 };
+		std::bitset<32> bits = {cache[i/2].tag[k]};
+		std::bitset<32> bits_of_index = { i/2 };
         //std::cout << " Way: " << j;
         unsigned max;
         if(k == 0){
@@ -405,32 +404,32 @@ void display_contents(vector<entry> &cache, cache_char* specs)
                             /*Print the index bits*/
                             if(j < x_index_frame - 1){
 								if (tmp >= 0) {
-									cout << bits_of_index[tmp] ;
+									std::cout << bits_of_index[tmp] ;
 									tmp--;
 								}
 								else {
-									cout << " ";
+									std::cout << " ";
 								}
                             }
 							/* Print the Valid bit and some spaces*/
 							else if ( j < x_index_frame + 4 - 1 ) {
 								if (tmp_valid == 1) {
-									cout << cache[i/2].valid[k];
+									std::cout << cache[i/2].valid[k];
 								}
 								else {
-									cout << " ";
+									std::cout << " ";
 								}
 								tmp_valid--;
 							}
 
 							else if (( j > x_index_frame + 4 + 4 + 7 - 1) && (j < x_index_frame+ 4 + 4 + 7 + x_tag_frame - 1) ){
-								//cout << " ";
+								//std::cout << " ";
 								if (tmp_tag >= 0) {
-									cout << bits[tmp_tag];
+									std::cout << bits[tmp_tag];
 									tmp_tag--;
 								}
 								else {
-									cout << " ";
+									std::cout << " ";
 								}
 							}
 							/* Print the Spaces for Dirty bit and Data
@@ -438,7 +437,7 @@ void display_contents(vector<entry> &cache, cache_char* specs)
 							 * actual data those two are empty
 							 */
 							else {
-								cout << " ";
+								std::cout << " ";
 							}
                         }
 
@@ -457,22 +456,22 @@ void display_contents(vector<entry> &cache, cache_char* specs)
 							/* Print the Valid bit and some spaces*/
 							if (j < 4 - 1) {
 								if (tmp_valid == 1) {
-									cout << cache[i / 2].valid[k];
+									std::cout << cache[i / 2].valid[k];
 								}
 								else {
-									cout << " ";
+									std::cout << " ";
 								}
 								tmp_valid--;
 							}
 
 							else if ((j > 4 + 4 + 7 - 1) && (j < 4 + 4 + 7 + x_tag_frame - 1)) {
-								//cout << " ";
+								//std::cout << " ";
 								if (tmp_tag >= 0) {
-									cout << bits[tmp_tag];
+									std::cout << bits[tmp_tag];
 									tmp_tag--;
 								}
 								else {
-									cout << " ";
+									std::cout << " ";
 								}
 							}
 							/* Print the Spaces for Dirty bit and Data
@@ -480,7 +479,7 @@ void display_contents(vector<entry> &cache, cache_char* specs)
 							 * actual data those two are empty
 							 */
 							else {
-								cout << " ";
+								std::cout << " ";
 							}
                         }
                     }
@@ -497,20 +496,20 @@ void display_contents(vector<entry> &cache, cache_char* specs)
         printf("\n");
     }
 
-		/*std::cout << " Valid: " << cache[i].valid[j];
+		/*std::std::cout << " Valid: " << cache[i].valid[j];
         if(cache[i].valid[j]){
-            std::cout << ", Tag: ";
+            std::std::cout << ", Tag: ";
             for(unsigned k=specs->tag_size-1; k>=0; k--){
-                std::cout << bits[k] ;
+                std::std::cout << bits[k] ;
                 if (k==0) break;
             }
             if(specs->asso > 1){
-                std::cout << " LRU: " << cache[i].LRU[j];
+                std::std::cout << " LRU: " << cache[i].LRU[j];
             }
-            std::cout << " First Addr in Block: " << return_word(cache[i].tag[j],
+            std::std::cout << " First Addr in Block: " << return_word(cache[i].tag[j],
                                        specs->tag_shift,i,specs->block_offset);
         }
-		std::cout << endl;
+		std::std::cout << std::endl;
 
         }*/
 }
@@ -529,13 +528,13 @@ void print_results(cache_prof *prof_info)
 {
     if(prof_info->check == 0 ) return ;
 	float hitrate = 0.0;
-	std::cout << "************* Cache Simulation Statistics *********"<< endl;
+	std::cout << "************* Cache Simulation Statistics *********"<< std::endl;
 	printf ("*             Total ACCESSES : %18d *\n",prof_info->check);
 	printf ("*             Number of HITS : %18d *\n",prof_info->hit);
 	printf ("*             Number of MISSES : %16d *\n",prof_info->miss);
 	hitrate =100* (float(prof_info->hit) / float(prof_info->check));
 	printf ("*             HIT RATE : %23.2f%% *\n",hitrate);
-	std::cout << "***************************************************"<< endl;
+	std::cout << "***************************************************"<< std::endl;
 }
 
 
@@ -543,18 +542,18 @@ void print_results(cache_prof *prof_info)
 int main(int argc, char* argv[])
 {
 /******************************** Variables declarations **********************/
-	string filename,fname;
+	std::string filename,fname;
     unsigned long asso, val;
 	unsigned long cache_size, block_size, memory_size, address;
-	string str;
-	ifstream infile,file;
-	vector<entry> cache;
+	std::string str;
+	std::ifstream infile,file;
+	std::vector<entry> cache;
 	entry init_entry;
     cache_prof prof_info;
     cache_char cache_specs;
     int alnum_flag;
-    string::size_type i;
-    locale loc;
+    std::string::size_type i;
+    std::locale loc;
     size_t found;
     char *token,*endptr;
 
@@ -573,49 +572,49 @@ int main(int argc, char* argv[])
     // Print info about GPL licence*
     std::cout << "This software is under ";
     std::cout << "the terms of the GNU General Public License v3\nFor more info see";
-    std::cout << ": <https://www.gnu.org/licenses/>" << endl << endl;
+    std::cout << ": <https://www.gnu.org/licenses/>" << std::endl << std::endl;
     if( argc < 2 ){
 
         while( ( memory_size = get_sizeof_memory() ) == 0 ){
-            std::cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+            std::cout << "Bad Input: Memory Size must be power of 2!\n" << std::endl;
         }
 
         while( ( word_size = get_sizeof_word() ) == 0 ){
-            std::cout << "Bad Input: Word Size must be power of 2!\n" << endl;;
+            std::cout << "Bad Input: Word Size must be power of 2!\n" << std::endl;;
         }
 
         while( ( cache_size = get_sizeof_cache() ) == 0  ){
-            std::cout << "Bad Input: Cache Size must be power of 2!\n" << endl;;
+            std::cout << "Bad Input: Cache Size must be power of 2!\n" << std::endl;;
         }
 
         while( ( block_size = get_sizeof_cacheline() ) == 0 ){
-            std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;;
+            std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << std::endl;;
         }
 
         while( ( asso = get_associativity() ) == 0 ){
-            std::cout << "Bad Input: Associativity should be either 1,2,4,8 or 16"<<endl;
+            std::cout << "Bad Input: Associativity should be either 1,2,4,8 or 16"<<std::endl;
         }
 
     }
     else{
-        std::cout << "Filename given: " << argv[1] << endl;
-        infile.open(argv[1], ios::in);
+        std::cout << "Filename given: " << argv[1] << std::endl;
+        infile.open(argv[1], std::ios::in);
         if (!infile){
             std::cout << "Error! File not found...\n";
             exit(-1);
         }
         while (getline(infile, str)){
             found = str.find("memsize");
-            if ( found != string::npos ) {
+            if ( found != std::string::npos ) {
                 char *line = &(str[0]);
-                std::cout << line << endl;
+                std::cout << line << std::endl;
                 token = strtok(line," ");
                 if(token != NULL) {
                     token = strtok(NULL," ");
                     if(token == NULL ){
-                        std::cout << "Bad Input: memsize found but no digits were found!" << endl;
+                        std::cout << "Bad Input: memsize found but no digits were found!" << std::endl;
                         while( ( val = get_sizeof_memory() ) == 0 ){
-                            std::cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Memory Size must be power of 2!\n" << std::endl;
                         }
                         memory_size = val;
                         continue;
@@ -625,36 +624,36 @@ int main(int argc, char* argv[])
                         || (errno != 0 && val == 0))  {
                         perror("memsize: bad input - strtol\n");
                         while( ( val = get_sizeof_memory() ) == 0 ){
-                            std::cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Memory Size must be power of 2!\n" << std::endl;
                         }
                     }
                     if (endptr == token) {
                         fprintf(stderr, "Bad Input: memsize found but no digits were found!\n");
                          while( ( val = get_sizeof_memory() ) == 0 ){
-                            std::cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Memory Size must be power of 2!\n" << std::endl;
                         }
                     }
                 }
                 else{
-                    std::cout << "Bad Input: memsize found but no digits were found!" << endl;
+                    std::cout << "Bad Input: memsize found but no digits were found!" << std::endl;
                     while( ( val = get_sizeof_memory() ) == 0 ){
-                        std::cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+                        std::cout << "Bad Input: Memory Size must be power of 2!\n" << std::endl;
                     }
                 }
                 memory_size = val;
                 continue;
             }
             found = str.find("wordsize");
-            if ( found != string::npos ) {
+            if ( found != std::string::npos ) {
                 char *line = &(str[0]);
-                std::cout << line << endl;
+                std::cout << line << std::endl;
                 token = strtok(line," ");
                 if(token != NULL) {
                     token = strtok(NULL," ");
                     if(token == NULL ) {
-                        std::cout << "Bad Input: wordsize found but no digits were found!" << endl;
+                        std::cout << "Bad Input: wordsize found but no digits were found!" << std::endl;
                         while( ( val = get_sizeof_word() ) == 0 ){
-                            std::cout << "Bad Input: Word Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Word Size must be power of 2!\n" << std::endl;
                         }
                         word_size = val;
                         continue;
@@ -664,36 +663,36 @@ int main(int argc, char* argv[])
                         || (errno != 0 && val == 0))  {
                         perror("wordsize: bad input - strtol\n");
                         while( ( val = get_sizeof_word() ) == 0 ){
-                            std::cout << "Bad Input: Word Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Word Size must be power of 2!\n" << std::endl;
                         }
                     }
                     if (endptr == token) {
                         fprintf(stderr, "Bad Input: wordsize found but no digits were found!\n");
                         while( ( val = get_sizeof_word() ) == 0 ){
-                            std::cout << "Bad Input: Word Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Word Size must be power of 2!\n" << std::endl;
                         }
                     }
                 }
                 else{
-                    std::cout << "Bad Input: wordsize found but no digits were found!" << endl;
+                    std::cout << "Bad Input: wordsize found but no digits were found!" << std::endl;
                     while( ( val = get_sizeof_word() ) == 0 ){
-                        std::cout << "Bad Input: Word Size must be power of 2!\n" << endl;
+                        std::cout << "Bad Input: Word Size must be power of 2!\n" << std::endl;
                     }
                 }
                 word_size = val;
                 continue;
             }
             found = str.find("cachesize");
-            if ( found != string::npos ) {
+            if ( found != std::string::npos ) {
                 char *line = &(str[0]);
-                std::cout << line << endl;
+                std::cout << line << std::endl;
                 token = strtok(line," ");
                 if(token != NULL) {
                     token = strtok(NULL," ");
                     if(token == NULL ){
-                        std::cout << "Bad Input: cachesize found but no digits were found!" << endl;
+                        std::cout << "Bad Input: cachesize found but no digits were found!" << std::endl;
                         while( ( val = get_sizeof_cache()) == 0 ){
-                            std::cout << "Bad Input: Cache Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Cache Size must be power of 2!\n" << std::endl;
                         }
                         cache_size = val;
                         continue;
@@ -703,36 +702,36 @@ int main(int argc, char* argv[])
                         || (errno != 0 && val == 0))  {
                         perror("cachesize: bad input - strtol\n");
                         while( ( val = get_sizeof_cache() ) == 0 ){
-                            std::cout << "Bad Input: Cache Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Cache Size must be power of 2!\n" << std::endl;
                         }
                     }
                     if (endptr == token) {
                         fprintf(stderr, "Bad Input: cachesize found but no digits were found!\n");
                         while( ( val = get_sizeof_cache() ) == 0  ){
-                            std::cout << "Bad Input: Cache Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Cache Size must be power of 2!\n" << std::endl;
                         }
                     }
                 }
                 else{
-                    std::cout << "Bad Input: cachesize found but no digits were found!" << endl;
+                    std::cout << "Bad Input: cachesize found but no digits were found!" << std::endl;
                     while( ( val = get_sizeof_cache() ) == 0 ){
-                        std::cout << "Bad Input: Cache Size must be power of 2!\n" << endl;
+                        std::cout << "Bad Input: Cache Size must be power of 2!\n" << std::endl;
                     }
                 }
                 cache_size = val;
                 continue;
             }
             found = str.find("linesize");
-            if ( found != string::npos ) {
+            if ( found != std::string::npos ) {
                 char *line = &(str[0]);
-                std::cout << line << endl;
+                std::cout << line << std::endl;
                 token = strtok(line," ");
                 if(token != NULL) {
                     token = strtok(NULL," ");
                     if(token == NULL ){
-                        std::cout << "Bad Input: linesize found but no digits were found!" << endl;
+                        std::cout << "Bad Input: linesize found but no digits were found!" << std::endl;
                         while( ( val = get_sizeof_cacheline() ) == 0 ){
-                            std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << std::endl;
                         }
                         block_size = val;
                         continue;
@@ -742,36 +741,36 @@ int main(int argc, char* argv[])
                         || (errno != 0 && val == 0))  {
                         perror("linesize: bad input - strtol\n");
                         while( ( val = get_sizeof_cacheline() ) == 0 ){
-                                std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;
+                                std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << std::endl;
                         }
                     }
                     if (endptr == token) {
                         fprintf(stderr, "Bad Input: linesize found but no digits were found!\n");
                         while( ( val = get_sizeof_cacheline() ) == 0 ){
-                            std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << std::endl;
                         }
                     }
                 }
                 else{
-                    std::cout << "Bad Input: linesize found but no digits were found!" << endl;
+                    std::cout << "Bad Input: linesize found but no digits were found!" << std::endl;
                     while( ( val = get_sizeof_cacheline() ) == 0 ){
-                        std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;
+                        std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << std::endl;
                     }
                 }
                 block_size = val;
                 continue;
             }
             found = str.find("asso");
-            if ( found != string::npos ) {
+            if ( found != std::string::npos ) {
                 char *line = &(str[0]);
-                std::cout << line << endl;
+                std::cout << line << std::endl;
                 token = strtok(line," ");
                 if(token != NULL) {
                     token = strtok(NULL," ");
                     if(token == NULL ){
-                        std::cout << "Bad Input: associativity found but no digits were found!" << endl;
+                        std::cout << "Bad Input: associativity found but no digits were found!" << std::endl;
                         while( ( val = get_associativity() ) == 0 ){
-                            std::cout << "Bad Input: Associativity must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Associativity must be power of 2!\n" << std::endl;
                         }
                         asso = val;
                         continue;
@@ -781,20 +780,20 @@ int main(int argc, char* argv[])
                         || (errno != 0 && val == 0))  {
                         perror("associativity: bad input - strtol\n");
                         while( ( val = get_associativity() ) == 0 ){
-                            std::cout << "Bad Input: Associativity must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Associativity must be power of 2!\n" << std::endl;
                         }
                     }
                     if (endptr == token) {
                         fprintf(stderr, "Bad Input: associativity found but no digits were found!\n");
                         while( ( val = get_associativity() ) == 0 ){
-                            std::cout << "Bad Input: Associativity must be power of 2!\n" << endl;
+                            std::cout << "Bad Input: Associativity must be power of 2!\n" << std::endl;
                         }
                     }
                 }
                 else{
-                    std::cout << "Bad Input: associativity found but no digits were found!" << endl;
+                    std::cout << "Bad Input: associativity found but no digits were found!" << std::endl;
                     while( ( val = get_associativity() ) == 0 ){
-                        std::cout << "Bad Input: Associativity must be power of 2!\n" << endl;
+                        std::cout << "Bad Input: Associativity must be power of 2!\n" << std::endl;
                     }
                 }
                 asso = val;
@@ -804,27 +803,27 @@ int main(int argc, char* argv[])
         }
         if(memory_size == 0){
             while( ( memory_size = get_sizeof_memory() ) == 0 ){
-                std::cout << "Bad Input: Memory Size must be power of 2!\n" << endl;
+                std::cout << "Bad Input: Memory Size must be power of 2!\n" << std::endl;
             }
         }
         if(word_size == 0 ){
             while( ( word_size = get_sizeof_word() ) == 0 ){
-                std::cout << "Bad Input: Word Size must be power of 2!\n" << endl;
+                std::cout << "Bad Input: Word Size must be power of 2!\n" << std::endl;
             }
         }
         if(cache_size == 0){
             while( ( cache_size = get_sizeof_cache()) == 0 ){
-                std::cout << "Bad Input: Cache Size must be power of 2!\n" << endl;
+                std::cout << "Bad Input: Cache Size must be power of 2!\n" << std::endl;
             }
         }
         if(block_size == 0){
             while( ( block_size = get_sizeof_cacheline() ) == 0 ){
-                std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << endl;
+                std::cout << "Bad Input: Cache Line Size must be power of 2!\n" << std::endl;
             }
         }
         if(asso == 0 ){
             while( ( asso = get_associativity() ) == 0 ){
-                std::cout << "Bad Input: Associativity must be power of 2!\n" << endl;
+                std::cout << "Bad Input: Associativity must be power of 2!\n" << std::endl;
             }
         }
     }
@@ -843,9 +842,9 @@ int main(int argc, char* argv[])
     print_specs(&cache_specs);
 
 /***************************Simulation Starting********************************/
-    std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+    std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<std::endl;
 	while (true){
-        getline(cin,str);
+        getline(std::cin,str);
         if(str.length() > 0 ){
             if(str.compare("help") == 0){
                 printf("\texit:\t\t\tPrints the Statistics and exits YAC Simulator\n");
@@ -859,36 +858,36 @@ int main(int argc, char* argv[])
             }
             if(str.compare("exit") == 0 ) {
                 print_results(&prof_info);
-                std::cout << "Exiting YAC Simulator..." << endl;
+                std::cout << "Exiting YAC Simulator..." << std::endl;
                 break;
             }
             /*Display contents of cache*/
             if(str.compare("display") == 0 ){
                 display_contents(cache,&cache_specs);
-                std::cout << endl;
+                std::cout << std::endl;
                 print_results(&prof_info);
-                std::cout << endl;
-                std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+                std::cout << std::endl;
+                std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<std::endl;
                 continue;
             }
             if(str.compare("flush") == 0 ){
                 clear_contents(cache,&cache_specs,&prof_info);
-                std::cout << endl;
-                std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+                std::cout << std::endl;
+                std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<std::endl;
                 continue;
             }
             /*Input from file*/
             if(str.length() > 6 ){
-                string token1 = str.substr(0,6);
-                string token2 = str.substr(7,string::npos);
+                std::string token1 = str.substr(0,6);
+                std::string token2 = str.substr(7,std::string::npos);
                 if(token1.compare("source") == 0 ){
                     fname.assign(token2);
                     if(fname.size() > MAX_FILENAME){
-                        std::cout << "Filename exceeded max size\nExiting..." << endl;
+                        std::cout << "Filename exceeded max size\nExiting..." << std::endl;
                         exit(-1);
                     }
-                    std::cout << "Filename given: " << fname << endl;
-                    file.open(fname, ios::in);
+                    std::cout << "Filename given: " << fname << std::endl;
+                    file.open(fname, std::ios::in);
                     if (!file){
                         std::cout << "Error! File not found...\n";
                         exit(-1);
@@ -898,8 +897,8 @@ int main(int argc, char* argv[])
                         cache_access(cache, address, &cache_specs,&prof_info);
                     }
                     file.close();
-                    std::cout << endl;
-                    std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+                    std::cout << std::endl;
+                    std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<std::endl;
                     continue;
                 }
                 else{
@@ -917,17 +916,17 @@ int main(int argc, char* argv[])
             }
             i = 0;
             if(alnum_flag == 1){
-                std::cout << "Wrong command or Address not alphanumeric"<< endl;
-                std::cout << endl;
-                std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+                std::cout << "Wrong command or Address not alphanumeric"<< std::endl;
+                std::cout << std::endl;
+                std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<std::endl;
                 str.clear();
                 alnum_flag = 0;
                 continue;
             }
             address = stoul(str);
             cache_access(cache, address, &cache_specs,&prof_info);
-            std::cout << endl;
-            std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<endl;
+            std::cout << std::endl;
+            std::cout << "Insert an address or a valid command, type \"help\" for a list of available commands"<<std::endl;
         }
 	}
 	return 0;
