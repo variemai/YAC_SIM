@@ -18,6 +18,19 @@ add_subdirectory(tests)
 # Add source files
 add_library(utilities src/utilities.cpp)
 
+# Set CMake to export compile commands in the build directory
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# If the build directory is separate, create a symbolic link in the root
+if (CMAKE_BINARY_DIR STREQUAL CMAKE_SOURCE_DIR)
+    # Nothing to do if the build directory is the source directory
+else()
+    # Create a symbolic link to compile_commands.json in the root directory
+    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink
+                    ${CMAKE_BINARY_DIR}/compile_commands.json
+                    ${CMAKE_SOURCE_DIR}/compile_commands.json)
+endif()
+
 # Add the executable target
 #add_executable(yac_sim yac_sim.cpp utils.cpp)
 
