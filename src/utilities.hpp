@@ -1,0 +1,18 @@
+#ifndef UTILITIES_H_
+#define UTILITIES_H_
+
+#include <cstdint>
+#include <bitset>
+
+#define u32_t uint32_t
+
+bool isPowerOfTwo(u32_t);
+
+/*Returns the index of the first bit that is equal to 1 in the bitset*/
+u32_t bitIndex1(const std::bitset<32>& );
+
+/*Returns the exponent of a number that is power of 2*/
+u32_t expOfPow2(u32_t);
+
+
+#endif // UTILITIES_H_
