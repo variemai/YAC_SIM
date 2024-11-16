@@ -45,7 +45,15 @@ struct CacheCharacteristics {
     uint32_t no_set;
     uint32_t associativity;
 
-    CacheCharacteristics(const CacheSpecs& specs);
+    CacheCharacteristics(const CacheSpecs& specs)
+		: tmp_tag(specs.cache_size / (specs.block_size * specs.associativity)),
+		tmp(tmp_tag* specs.block_size),
+		block_offset(expOfPow2(specs.block_size)),
+		tag_shift(expOfPow2(tmp_tag)),
+		tag_size(32 - block_offset - tag_shift),
+		index_size(expOfPow2(tmp_tag)),
+		no_set(specs.cache_size / specs.block_size),
+		associativity(specs.associativity) {}
 };
 
 

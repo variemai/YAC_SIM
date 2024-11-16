@@ -6,6 +6,7 @@
 
 #define u32_t uint32_t
 
+/*Returns true if the number is a power of 2*/
 bool isPowerOfTwo(u32_t);
 
 /*Returns the index of the first bit that is equal to 1 in the bitset*/

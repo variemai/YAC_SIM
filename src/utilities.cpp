@@ -1,9 +1,16 @@
 #include "utilities.hpp"
+#ifdef WIN32
+#include <intrin.h>
+#endif // WIN32
+
 
 bool isPowerOfTwo(u32_t n)
 {
 #ifdef HAVE_BUILTIN_POPCOUNT
     return n > 0 && __builtin_popcount(n) == 1;
+#endif
+#ifdef WIN32
+	return n > 0 && __popcnt(n) == 1;
 #else
     // Fallback implementation without intrinsics
     return n > 0 && (n & (n - 1)) == 0;
@@ -25,6 +32,11 @@ u32_t expOfPow2(u32_t num)
 {
 #ifdef HAVE_BUILTIN_CTZ
     return __builtin_ctz(num);
+#endif
+#ifdef WIN32
+	unsigned long index;
+	_BitScanForward(&index, num);
+	return index;
 #else
     // Fallback implementation without intrinsics
     u32_t exponent = 0;
