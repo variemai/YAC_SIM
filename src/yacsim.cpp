@@ -70,6 +70,20 @@ namespace yacsim {
 		std::cout << "Associativity: " << associativity << '\n';
 	}
 
+    Cache::Cache(const CacheSpecs& _specs, const CacheCharacteristics& _characteristics) {
+		characteristics = _characteristics;
+		specs = _specs;
+		entries = std::vector<CacheEntry>(specs.cache_size / specs.block_size, CacheEntry(specs.associativity));
+    }
+
+    u32_t Cache::getHits() const {
+        return hits;
+    }
+
+	u32_t Cache::getMisses() const {
+		return misses;
+	}
+
 
 
 } // namespace yacsim

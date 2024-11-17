@@ -5,6 +5,7 @@
 #include <bitset>
 
 #define u32_t uint32_t
+#define u16_t uint16_t
 
 /*Returns true if the number is a power of 2*/
 bool isPowerOfTwo(u32_t);
