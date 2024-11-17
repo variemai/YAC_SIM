@@ -79,6 +79,7 @@ class Cache {
         // Cache access and profile management
         void access(u32_t address);
         void resetProfile();
+		void clearContents();
         u32_t getHits() const;
         u32_t getMisses() const;
 

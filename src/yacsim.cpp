@@ -84,6 +84,20 @@ namespace yacsim {
 		return misses;
 	}
 
+	void Cache::clearContents() {
+		for (auto& entry : entries) {
+			for (u32_t i = 0; i < specs.associativity; i++) {
+				entry.valid[i] = 0;
+				entry.tag[i] = 0;
+				if (specs.associativity > 1) {
+					entry.LRU[i] = 0;
+				}
+			}
+		}
+		check = 0;
+		hits = 0;
+		misses = 0;
+	}
 
 
 } // namespace yacsim
