@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cstdint>
+#include "utilities.hpp"
 
 namespace yacsim {
 
@@ -10,55 +11,49 @@ namespace yacsim {
 class MainMemory {
 
     public:
-        MainMemory(uint32_t memory_size, uint32_t word_size);
+        MainMemory(u32_t memory_size, u32_t word_size);
 
-        uint32_t getMemorySize() const;
-        uint32_t getWordSize() const;
+        u32_t getMemorySize() const;
+        u32_t getWordSize() const;
 
     private:
-        uint32_t memory_size;
-        uint32_t word_size;
-        std::vector<uint32_t> data;
+        u32_t memory_size;
+        u32_t word_size;
+        std::vector<u32_t> data;
 };
 
 // Stores the basic cache specifications provided by the user
 struct CacheSpecs {
-    uint32_t cache_size;
-    uint32_t block_size;
-    uint32_t memory_size;
-    uint32_t associativity;
+    u32_t cache_size;
+    u32_t block_size;
+    u32_t associativity;
 
-    CacheSpecs(uint32_t cache_size, uint32_t block_size,
-               uint32_t memory_size, uint32_t associativity)
-        : cache_size(cache_size), block_size(block_size),
-          memory_size(memory_size), associativity(associativity) {}
+    CacheSpecs(u32_t cache_size, u32_t block_size, u32_t associativity)
+        : cache_size(cache_size), block_size(block_size), 
+        associativity(associativity) {}
 };
 
 // Holds the derived characteristics of the cache based on CacheSpecs
 struct CacheCharacteristics {
-    uint32_t tmp_tag;
-    uint32_t tmp;
-    uint32_t block_offset;
-    uint32_t tag_shift;
-    uint32_t tag_size;
-    uint32_t index_size;
-    uint32_t no_set;
-    uint32_t associativity;
+    u32_t tmp_tag;
+    u32_t tmp;
+    u32_t block_offset;
+    u32_t tag_shift;
+    u32_t tag_size;
+    u32_t index_size;
+    u32_t no_set;
+    u32_t associativity;
 
-    CacheCharacteristics(const CacheSpecs& specs)
-		: tmp_tag(specs.cache_size / (specs.block_size * specs.associativity)),
-		tmp(tmp_tag* specs.block_size),
-		block_offset(expOfPow2(specs.block_size)),
-		tag_shift(expOfPow2(tmp_tag)),
-		tag_size(32 - block_offset - tag_shift),
-		index_size(expOfPow2(tmp_tag)),
-		no_set(specs.cache_size / specs.block_size),
-		associativity(specs.associativity) {}
+    CacheCharacteristics(const CacheSpecs& specs, const u32_t memory_size);
+
+	void printCharacteristics() const;
 };
 
 
 // Represents a single cache entry with validity, tag, and LRU info
-class CacheEntry {
+struct CacheEntry {
+
+	std::vector<uint16_t> valid;
 
     public:
         // Constructor: IMPORTANT: initialize everything with 0
@@ -76,12 +71,12 @@ class CacheEntry {
         // Move assignment operator: enables moving resources from a temporary CacheEntry to this one
         CacheEntry &operator=(CacheEntry &&) = default;
 
-        void accessEntry(uint32_t tag);
-        uint32_t getTag(size_t index) const;
+        void accessEntry(u32_t tag);
+        u32_t getTag(size_t index) const;
 
     private:
         std::vector<uint16_t> valid;
-        std::vector<uint32_t> tag;
+        std::vector<u32_t> tag;
         std::vector<uint16_t> LRU;
 };
 
@@ -92,7 +87,7 @@ class Cache {
         Cache(const CacheSpecs& specs, const CacheCharacteristics& characteristics);
 
         // Cache access and profile management
-        void access(uint32_t address);
+        void access(u32_t address);
         void resetProfile();
         int getHits() const;
         int getMisses() const;
@@ -107,7 +102,7 @@ class Cache {
         int miss = 0;
 
         // Internal method for applying the LRU policy, etc.
-        void applyLRUPolicy(uint32_t address);
+        void applyLRUPolicy(u32_t address);
 };
 
 
