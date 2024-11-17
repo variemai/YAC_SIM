@@ -41,7 +41,7 @@ enable_testing()
 add_subdirectory(tests)
 
 # Add source files
-add_library(utilities src/utilities.cpp "src/main.cpp" "src/yacsim.cpp")
+add_library(utilities src/utilities.cpp "src/main.cpp" "src/yacsim.cpp" "src/FileReader.cpp")
 
 # Set CMake to export compile commands in the build directory
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
