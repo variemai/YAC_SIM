@@ -3,10 +3,6 @@
 
 #include <string>
 #include <vector>
-#include <cstdint>
-#include <fstream>
-#include <sstream>
-#include <stdexcept>
 #include "utilities.hpp"
 
 
@@ -15,13 +11,15 @@ struct Config {
     u32_t cachesize;
     u32_t wordsize;
     u32_t linesize;
-    u32_t associativity;
+    u32_t asso;
 };
 
 class FileReader {
 public:
-    Config loadConfig(const std::string& filename);
+    int loadConfig(const std::string& filename, Config& config);
     int loadTrace(const std::string& filename, std::vector<u32_t>& trace);
+    void printConfig(const Config& config);
+    void printTrace(const std::vector<u32_t>& trace);
     FileReader() = default;
 };
 

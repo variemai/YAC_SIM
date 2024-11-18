@@ -7,8 +7,9 @@ target_link_libraries(test_cachechar utilities)
 target_link_libraries(test_filereader utilities)
 
 configure_file(${CMAKE_SOURCE_DIR}/inputs/ex11_5_trace.txt ${CMAKE_BINARY_DIR}/tests/ex11_5_trace.txt COPYONLY)
+configure_file(${CMAKE_SOURCE_DIR}/inputs/config.txt ${CMAKE_BINARY_DIR}/tests/config.txt COPYONLY)
 
 # Register the test executable with CTest
 add_test(NAME UtilitiesTest COMMAND test_utilities)
+add_test(NAME FileReaderTest COMMAND test_filereader ${CMAKE_BINARY_DIR}/tests/config.txt ${CMAKE_BINARY_DIR}/tests/ex11_5_trace.txt)
 add_test(NAME CacheCharacteristicsTest COMMAND test_cachechar)
-add_test(NAME FileReaderTest COMMAND test_filereader ${CMAKE_BINARY_DIR}/tests/ex11_5_trace.txt)
