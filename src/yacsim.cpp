@@ -7,8 +7,6 @@
 namespace yacsim {
 
 	// Default constructor for MainMemory
-
-
     MainMemory::MainMemory(u32_t memory_size, u32_t word_size)
         : memory_size(memory_size), word_size(word_size), data(memory_size / word_size, 0) {
         // Ensure memory_size is a multiple of word_size
