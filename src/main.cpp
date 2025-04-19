@@ -9,6 +9,8 @@ int main(int argc, char* argv[]) {
     Config config;
     filereader.loadConfig(argv[1], config);
     filereader.printConfig(config);
+    // Check if something is missing from the config and ask the user to fill it
+
 
 	return 0;
 }

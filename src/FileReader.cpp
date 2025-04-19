@@ -120,6 +120,30 @@ int FileReader::loadConfig(const std::string& filename, Config& config) {
 
     return result;
 }
+// Parses the config and asks the user to assign missing values
+void FileReader::parseConfig(Config &config) {
+
+    if (config.memsize == 0) {
+        std::cout << "Enter memory size (in bytes): ";
+        std::cin >> config.memsize;
+    }
+    if (config.wordsize == 0) {
+        std::cout << "Enter word size (in bytes): ";
+        std::cin >> config.wordsize;
+    }
+    if (config.cachesize == 0) {
+        std::cout << "Enter cache size (in bytes): ";
+        std::cin >> config.cachesize;
+    }
+    if (config.linesize == 0) {
+        std::cout << "Enter cache line (block) size (in bytes): ";
+        std::cin >> config.linesize;
+    }
+    if (config.asso == 0) {
+        std::cout << "Enter associativity: ";
+        std::cin >> config.asso;
+    }
+}
 
 void FileReader::printConfig(const Config& config) {
     std::cout << "Configuration:\n";
