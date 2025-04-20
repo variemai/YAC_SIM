@@ -20,7 +20,7 @@ public:
     int loadTrace(const std::string& filename, std::vector<u32_t>& trace);
     void printConfig(const Config& config);
     void printTrace(const std::vector<u32_t> &trace);
-    void parseConfig(Config& config);
+    bool parseConfig(Config& config);
     FileReader() = default;
 };
 
