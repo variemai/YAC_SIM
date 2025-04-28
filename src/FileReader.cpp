@@ -117,39 +117,39 @@ int FileReader::loadConfig(const std::string &filename, Config &config) {
   return result;
 }
 // Parses the config and asks the user to assign missing values
-bool FileReader::parseConfig(Config &config) {
+bool parseConfig(Config &config) {
   bool flag = false;
 
 
   if (config.memsize == 0) {
-    std::cout << "Config error: Memory size not found or invalid\nEnter memory size (in bytes): ";
+    std::cout << "Memory size not found or invalid\nEnter memory size (in bytes): ";
     std::cin >> config.memsize;
     flag = true;
   }
   if (config.wordsize == 0) {
-    std::cout << "Config error: Word size not found or invalid\nEnter word size (in bytes): ";
+    std::cout << "Word size not found or invalid\nEnter word size (in bytes): ";
     std::cin >> config.wordsize;
     flag = true;
   }
   if (config.cachesize == 0) {
-    std::cout << "Config error: Cache size not found or invalid\nEnter cache size (in bytes): ";
+    std::cout << "Cache size not found or invalid\nEnter cache size (in bytes): ";
     std::cin >> config.cachesize;
     flag = true;
   }
   if (config.linesize == 0) {
-    std::cout << "Config error: Cache line (block) size not found or invalid\nEnter cache line (block) size (in bytes): ";
+    std::cout << "Cache line (block) size not found or invalid\nEnter cache line (block) size (in bytes): ";
     std::cin >> config.linesize;
     flag = true;
   }
   if (config.asso == 0) {
-    std::cout << "Config error: Associativity not found or invalid\nEnter associativity: ";
+    std::cout << "Associativity not found or invalid\nEnter associativity (1 is for direct mapped): ";
     std::cin >> config.asso;
     flag = true;
   }
   return flag;
 }
 
-void FileReader::printConfig(const Config &config) {
+void printConfig(const Config &config) {
   std::cout << "Cache Configuration:\n";
   std::cout << "Memory size: " << config.memsize << "\n";
   std::cout << "Word size: " << config.wordsize << "\n";
@@ -158,7 +158,7 @@ void FileReader::printConfig(const Config &config) {
   std::cout << "Associativity: " << config.asso << "\n";
 }
 
-void FileReader::printTrace(const std::vector<u32_t> &trace) {
+void printTrace(const std::vector<u32_t> &trace) {
   std::cout << "Trace:\n";
   for (auto it = trace.begin(); it != trace.end(); it++) {
     std::cout << *it << std::endl;

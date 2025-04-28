@@ -14,13 +14,14 @@ struct Config {
     u32_t asso = 0;
 };
 
+void printConfig(const Config& config);
+void printTrace(const std::vector<u32_t> &trace);
+bool parseConfig(Config &config);
+
 class FileReader {
 public:
     int loadConfig(const std::string& filename, Config& config);
     int loadTrace(const std::string& filename, std::vector<u32_t>& trace);
-    void printConfig(const Config& config);
-    void printTrace(const std::vector<u32_t> &trace);
-    bool parseConfig(Config& config);
     FileReader() = default;
 };
 

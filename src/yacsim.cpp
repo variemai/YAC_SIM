@@ -1,5 +1,6 @@
 #include "utilities.hpp"
 #include "yacsim.hpp"
+#include <cstdint>
 #include <iostream>
 #include <cassert>
 #include <bitset>
@@ -72,6 +73,49 @@ namespace yacsim {
 		characteristics = _characteristics;
 		specs = _specs;
 		entries = std::vector<CacheEntry>(specs.cache_size / specs.block_size, CacheEntry(specs.associativity));
+    }
+
+    void Cache::access(uint32_t address) {
+        u32_t index = (address >> characteristics.block_offset) & characteristics.tmp;
+        u32_t tag = (address >> characteristics.tag_shift) & characteristics.tmp_tag;
+
+        bool hit = false;
+        for (u32_t i = 0; i < specs.associativity; i++) {
+            if (entries[index].valid[i] && entries[index].tag[i] == tag) {
+                hit = true;
+                hits++;
+                if (specs.associativity > 1) {
+                    entries[index].LRU[i] = ++check;
+                }
+                break;
+            }
+        }
+
+        if (!hit) {
+            misses++;
+            for (u32_t i = 0; i < specs.associativity; i++) {
+                if (!entries[index].valid[i]) {
+                    entries[index].valid[i] = 1;
+                    entries[index].tag[i] = tag;
+                    if (specs.associativity > 1) {
+                        entries[index].LRU[i] = ++check;
+                    }
+                    return;
+                }
+            }
+
+            // Evict the least recently used entry
+            u32_t lru_index = 0;
+            for (u32_t i = 1; i < specs.associativity; i++) {
+                if (entries[index].LRU[i] < entries[index].LRU[lru_index]) {
+                    lru_index = i;
+                }
+            }
+            entries[index].tag[lru_index] = tag;
+            if (specs.associativity > 1) {
+                entries[index].LRU[lru_index] = ++check;
+            }
+        }
     }
 
     u32_t Cache::getHits() const {
