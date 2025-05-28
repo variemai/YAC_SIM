@@ -1,5 +1,6 @@
 #include "utilities.hpp"
 #include <iostream>
+#include <limits>
 #ifdef WIN32
 #include <intrin.h>
 #endif // WIN32
